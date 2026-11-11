@@ -12,16 +12,18 @@
   - **Lucide Icons / FontAwesome CDN** para iconografía clara de auditoría y seguridad.
   - **Chart.js CDN** (`https://cdn.jsdelivr.net/npm/chart.js`) para los gráficos del Dashboard (`RF09`: gráfico de anillo de controles por estado y gráfico de barras de hallazgos por severidad).
   - **html2pdf.js CDN** (`https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js`) + estilos nativos `@media print` para la generación y descarga del Informe Consolidado en PDF (`RF08`, `CP-10`).
-- **Despliegue**: **Vercel** (apuntando el *Root Directory* a `frontend`), consumiendo el Backend desplegado en **Render** mediante `API_BASE_URL`.
+- **Despliegue y URLs Oficiales de Producción**:
+  - **Frontend en Vercel (`JuanDulcey/decr27000-frontend`)**: `https://decr27000-frontend.vercel.app`
+  - **Backend en Render (`JuanDulcey/decr27000-backend`)**: `https://decr27000-backend.onrender.com` (Base API: `https://decr27000-backend.onrender.com/api`).
 
 ---
 
-## 2. Estructura de Archivos del Frontend (`/frontend`)
+## 2. Estructura de Archivos del Repositorio Frontend (`decr27000-frontend`)
 
-La IA debe generar exactamente la siguiente estructura de archivos dentro de `/frontend`:
+La IA debe generar exactamente la siguiente estructura de archivos en la raíz del repositorio `decr27000-frontend`:
 
 ```text
-frontend/
+decr27000-frontend/
 ├── vercel.json                   # Configuración estática para Vercel
 ├── index.html                    # Redirección automática o vista de Login (igual a login.html)
 ├── login.html                    # Pantalla de Autenticación + Botones de Acceso Rápido Demo (Auditor / Admin)
