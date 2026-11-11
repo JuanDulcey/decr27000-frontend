@@ -313,7 +313,7 @@ Para que el proyecto funcione tanto en desarrollo local como una vez desplegado 
 const DEFAULT_API_URL =
   window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:4000/api'
-    : (localStorage.getItem('auditsys_api_url') || 'https://auditsys-mini-api.onrender.com/api');
+    : (localStorage.getItem('auditsys_api_url') || 'https://decr27000-backend.onrender.com/api');
 
 export const getApiBaseUrl = () => localStorage.getItem('auditsys_api_url') || DEFAULT_API_URL;
 export const setApiBaseUrl = (url) => localStorage.setItem('auditsys_api_url', url.replace(/\/+$/, ''));
