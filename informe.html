@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6. Informe Consolidado — AuditSys Mini (ISO/IEC 27002:2022)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+    integrity="sha384-Yv5O+t3uE3hunW8uyrbpPW3iw6/5/Y7HitWJBLgqfMoA36NogMmy+8wWZMpn3HWc"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-50">
+  <div id="app-shell">
+    <div id="page-content" class="space-y-6">
+      <!-- Barra de Acciones y Configuración (No imprimible) -->
+      <section class="card p-5 space-y-4 no-print">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-extrabold text-[#003366]">Informe Consolidado de Auditoría</h1>
+            <p class="text-sm text-slate-600">
+              Vista previa de 8 secciones generada desde la base de datos, versionado y exportación PDF (RF07 · RF08 · CP-09 · CP-10).
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button type="button" id="btn-generate-version" class="btn btn-outline text-xs sm:text-sm">
+              💾 Guardar Nueva Versión en BD
+            </button>
+            <button type="button" id="btn-print-pdf" class="btn btn-primary text-xs sm:text-sm">
+              🖨️ Imprimir / Guardar PDF
+            </button>
+            <button type="button" id="btn-download-html2pdf" class="btn btn-accent text-xs sm:text-sm">
+              ⬇ Descargar PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Selector de Versión Histórica y Checkboxes de Secciones -->
+        <div class="pt-3 border-t border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-2">
+            <label for="version-selector" class="text-xs font-bold text-slate-700 whitespace-nowrap">
+              Versión visualizada:
+            </label>
+            <select id="version-selector" class="form-select text-xs max-w-xs">
+              <option value="live">Datos en tiempo real (En vivo)</option>
+            </select>
+          </div>
+
+          <div id="section-toggles" class="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-slate-700">
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sec="sec-1" checked /> 1. Datos</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sec="sec-2" checked /> 2. Alcance</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sec="sec-3" checked /> 3. Indicadores</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sec="sec-4" checked /> 4. Evaluación</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sec="sec-5" checked /> 5. Hallazgos</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sec="sec-6" checked /> 6. Recomendaciones</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sec="sec-7" checked /> 7. Evidencias</label>
+            <label class="inline-flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-sec="sec-8" checked /> 8. Salvaguarda</label>
+          </div>
+        </div>
+      </section>
+
+      <!-- Documento Oficial del Informe (Imprimible / Exportable a PDF) -->
+      <article id="report-document" class="card bg-white p-6 sm:p-10 max-w-5xl mx-auto space-y-8 shadow-md">
+        <div class="p-8 text-center text-sm text-slate-500">Cargando informe consolidado...</div>
+      </article>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/informe.js"></script>
+</body>
+</html>

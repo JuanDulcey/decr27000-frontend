@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5. Hallazgos y Trazabilidad — AuditSys Mini (ISO/IEC 27002:2022)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-50">
+  <div id="app-shell">
+    <div id="page-content" class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-extrabold text-[#003366]">Hallazgos, Recomendaciones y Trazabilidad</h1>
+          <p class="text-sm text-slate-600">
+            Documentación de desviaciones (H-nn), acciones de mejora y matriz de trazabilidad (RF05 · RF06 · RNF05 · CP-07 · CP-08).
+          </p>
+        </div>
+        <a href="informe.html" class="btn btn-primary text-xs sm:text-sm">
+          Ir al Informe Consolidado →
+        </a>
+      </div>
+
+      <div id="hall-closed-banner" class="hidden p-4 rounded-xl bg-amber-50 border-2 border-[#F2A900] text-amber-950 text-sm" role="alert">
+        <strong>Auditoría CERRADA (Inmutable):</strong> No se pueden agregar, modificar ni eliminar hallazgos o recomendaciones (CP-13).
+      </div>
+
+      <!-- Panel de Reglas de Cierre en Vivo (CP-08 / F2.3) -->
+      <section id="closure-rules-panel" class="card p-5 border-l-4 border-l-[#003366] space-y-3">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <h2 class="text-base font-bold text-[#003366]">Estado de Reglas de Revisión y Cierre (RN04 / RN06 / CP-08)</h2>
+            <div id="closure-metrics" class="flex flex-wrap gap-3 text-xs font-semibold text-slate-700 pt-1">
+              <span>Verificando reglas...</span>
+            </div>
+          </div>
+          <div id="closure-actions" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div id="closure-error-box" class="hidden p-3 rounded-lg bg-[#fbecec] border border-[#D64545] text-[#7f1d1d] text-xs font-bold" role="alert"></div>
+      </section>
+
+      <!-- Formulario de Nuevo Hallazgo + Recomendación Inicial (CP-07) -->
+      <section id="new-hallazgo-section" class="card p-5">
+        <h2 class="text-base font-bold text-[#003366] mb-3">+ Registrar Nuevo Hallazgo (H-nn) y Recomendación</h2>
+        <form id="hallazgo-form" class="space-y-4" novalidate>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="md:col-span-2">
+              <label for="h-evaluacion" class="block text-xs font-bold text-slate-700 mb-1">
+                Control Evaluado Asociado <span class="text-[#D64545]">*</span>
+              </label>
+              <select id="h-evaluacion" name="h-evaluacion" class="form-select text-sm" required>
+                <option value="">Seleccione un control evaluado...</option>
+              </select>
+              <p id="error-h-evaluacion" class="field-error hidden"></p>
+            </div>
+            <div>
+              <label for="h-severidad" class="block text-xs font-bold text-slate-700 mb-1">
+                Severidad <span class="text-[#D64545]">*</span>
+              </label>
+              <select id="h-severidad" name="h-severidad" class="form-select text-sm" required>
+                <option value="ALTA">Severidad ALTA</option>
+                <option value="MEDIA" selected>Severidad MEDIA</option>
+                <option value="BAJA">Severidad BAJA</option>
+              </select>
+              <p id="error-h-severidad" class="field-error hidden"></p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="h-condicion" class="block text-xs font-bold text-slate-700 mb-1">
+                Condición (¿Qué se encontró?) <span class="text-[#D64545]">*</span>
+              </label>
+              <textarea id="h-condicion" name="h-condicion" rows="2" class="form-textarea text-sm"
+                placeholder="Describa la brecha o situación observada..." required></textarea>
+              <p id="error-h-condicion" class="field-error hidden"></p>
+            </div>
+            <div>
+              <label for="h-criterio" class="block text-xs font-bold text-slate-700 mb-1">
+                Criterio Normativo (heredado de ISO/IEC 27002:2022) <span class="text-[#D64545]">*</span>
+              </label>
+              <textarea id="h-criterio" name="h-criterio" rows="2" class="form-textarea text-sm"
+                placeholder="Se prellena al seleccionar el control..." required></textarea>
+              <p id="error-h-criterio" class="field-error hidden"></p>
+            </div>
+            <div>
+              <label for="h-causa" class="block text-xs font-bold text-slate-700 mb-1">
+                Causa Raíz (¿Por qué ocurre la desviación?) <span class="text-[#D64545]">*</span>
+              </label>
+              <textarea id="h-causa" name="h-causa" rows="2" class="form-textarea text-sm"
+                placeholder="Ej. Falta de procedimiento formal y responsable asignado..." required></textarea>
+              <p id="error-h-causa" class="field-error hidden"></p>
+            </div>
+            <div>
+              <label for="h-efecto" class="block text-xs font-bold text-slate-700 mb-1">
+                Efecto / Riesgo (¿Qué impacto genera?) <span class="text-[#D64545]">*</span>
+              </label>
+              <textarea id="h-efecto" name="h-efecto" rows="2" class="form-textarea text-sm"
+                placeholder="Ej. Exposición a incidentes o pérdida de disponibilidad..." required></textarea>
+              <p id="error-h-efecto" class="field-error hidden"></p>
+            </div>
+          </div>
+
+          <!-- Bloque Integrado de Recomendación Inicial (RF06) -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            <div class="text-xs font-bold uppercase tracking-wider text-[#003366]">
+              Recomendación Inicial Asociada (RF06)
+            </div>
+            <div>
+              <label for="rec-descripcion" class="block text-xs font-bold text-slate-700 mb-1">
+                Descripción de la acción recomendada
+              </label>
+              <textarea id="rec-descripcion" name="rec-descripcion" rows="2" class="form-textarea text-sm bg-white"
+                placeholder="Acción concreta de mejora para mitigar el hallazgo..."></textarea>
+              <p id="error-rec-descripcion" class="field-error hidden"></p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label for="rec-prioridad" class="block text-xs font-bold text-slate-700 mb-1">Prioridad</label>
+                <select id="rec-prioridad" class="form-select text-sm bg-white">
+                  <option value="ALTA">ALTA</option>
+                  <option value="MEDIA" selected>MEDIA</option>
+                  <option value="BAJA">BAJA</option>
+                </select>
+              </div>
+              <div>
+                <label for="rec-plazo" class="block text-xs font-bold text-slate-700 mb-1">Plazo sugerido (días)</label>
+                <input id="rec-plazo" name="rec-plazo" type="number" min="1" value="60" class="form-input text-sm bg-white" />
+                <p id="error-rec-plazo" class="field-error hidden"></p>
+              </div>
+              <div>
+                <label for="rec-responsable" class="block text-xs font-bold text-slate-700 mb-1">Responsable sugerido</label>
+                <input id="rec-responsable" type="text" value="Líder de TI / Seguridad de la Información" class="form-input text-sm bg-white" />
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="submit" id="btn-save-hallazgo" class="btn btn-primary">
+              Guardar Hallazgo y Recomendación
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Listado de Tarjetas de Hallazgos -->
+      <section class="space-y-3">
+        <h2 class="text-lg font-extrabold text-[#003366]">Hallazgos Documentados</h2>
+        <div id="hallazgos-list" class="space-y-4">
+          <div class="card p-6 text-center text-sm text-slate-500">Cargando hallazgos...</div>
+        </div>
+      </section>
+
+      <!-- Matriz de Trazabilidad de Extremo a Extremo (RNF05) -->
+      <section class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-bold text-[#003366]">Matriz de Trazabilidad de Extremo a Extremo (RNF05)</h2>
+            <p class="text-xs text-slate-500">
+              Auditoría → Control ISO → Estado Evaluación → Evidencia (EV-nn) → Hallazgo (H-nn) → Recomendación.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-traz-filter="ALL" class="btn btn-primary text-xs py-1.5">Todos</button>
+            <button type="button" data-traz-filter="SIN_EVIDENCIA" class="btn btn-outline text-xs py-1.5">Sin evidencia</button>
+            <button type="button" data-traz-filter="SIN_RECOMENDACION" class="btn btn-outline text-xs py-1.5">Hallazgo sin recomendación</button>
+          </div>
+        </div>
+        <div id="trazabilidad-table-container" class="table-responsive"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Modal Editar Hallazgo -->
+  <div id="edit-hall-modal" class="fixed inset-0 z-50 bg-slate-900/60 hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden">
+      <div class="bg-[#003366] text-white px-5 py-4 flex items-center justify-between">
+        <h3 id="edit-hall-title" class="font-bold text-base">Editar Hallazgo</h3>
+        <button type="button" id="edit-hall-close" class="text-white/80 hover:text-white p-1" aria-label="Cerrar">✕</button>
+      </div>
+      <form id="edit-hall-form" class="p-5 space-y-3 max-h-[82vh] overflow-y-auto" novalidate>
+        <input type="hidden" id="edit-hall-id" />
+        <div>
+          <label for="edit-hall-sev" class="block text-xs font-bold text-slate-700 mb-1">Severidad *</label>
+          <select id="edit-hall-sev" class="form-select text-sm">
+            <option value="ALTA">Severidad ALTA</option>
+            <option value="MEDIA">Severidad MEDIA</option>
+            <option value="BAJA">Severidad BAJA</option>
+          </select>
+        </div>
+        <div>
+          <label for="edit-hall-cond" class="block text-xs font-bold text-slate-700 mb-1">Condición *</label>
+          <textarea id="edit-hall-cond" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-edit-hall-cond" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label for="edit-hall-crit" class="block text-xs font-bold text-slate-700 mb-1">Criterio *</label>
+          <textarea id="edit-hall-crit" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-edit-hall-crit" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label for="edit-hall-causa" class="block text-xs font-bold text-slate-700 mb-1">Causa Raíz *</label>
+          <textarea id="edit-hall-causa" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-edit-hall-causa" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label for="edit-hall-efecto" class="block text-xs font-bold text-slate-700 mb-1">Efecto / Riesgo *</label>
+          <textarea id="edit-hall-efecto" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-edit-hall-efecto" class="field-error hidden"></p>
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" id="edit-hall-cancel" class="btn btn-outline text-xs">Cancelar</button>
+          <button type="submit" id="edit-hall-save" class="btn btn-primary text-xs">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Agregar Recomendación Adicional -->
+  <div id="add-rec-modal" class="fixed inset-0 z-50 bg-slate-900/60 hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden">
+      <div class="bg-[#003366] text-white px-5 py-4 flex items-center justify-between">
+        <h3 id="add-rec-title" class="font-bold text-base">Agregar Recomendación</h3>
+        <button type="button" id="add-rec-close" class="text-white/80 hover:text-white p-1">✕</button>
+      </div>
+      <form id="add-rec-form" class="p-5 space-y-3" novalidate>
+        <input type="hidden" id="add-rec-hallazgo-id" />
+        <div>
+          <label for="m-rec-desc" class="block text-xs font-bold text-slate-700 mb-1">Descripción *</label>
+          <textarea id="m-rec-desc" rows="3" class="form-textarea text-sm" required></textarea>
+          <p id="error-m-rec-desc" class="field-error hidden"></p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label for="m-rec-prio" class="block text-xs font-bold text-slate-700 mb-1">Prioridad *</label>
+            <select id="m-rec-prio" class="form-select text-sm">
+              <option value="ALTA">ALTA</option>
+              <option value="MEDIA" selected>MEDIA</option>
+              <option value="BAJA">BAJA</option>
+            </select>
+          </div>
+          <div>
+            <label for="m-rec-plazo" class="block text-xs font-bold text-slate-700 mb-1">Plazo (días) *</label>
+            <input id="m-rec-plazo" type="number" min="1" value="60" class="form-input text-sm" required />
+          </div>
+          <div>
+            <label for="m-rec-resp" class="block text-xs font-bold text-slate-700 mb-1">Responsable</label>
+            <input id="m-rec-resp" type="text" value="Líder de TI / Seguridad" class="form-input text-sm" />
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" id="add-rec-cancel" class="btn btn-outline text-xs">Cancelar</button>
+          <button type="submit" class="btn btn-primary text-xs">Guardar Recomendación</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/hallazgos.js"></script>
+</body>
+</html>

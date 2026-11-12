@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4. Evaluación y Evidencias — AuditSys Mini (ISO/IEC 27002:2022)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-50">
+  <div id="app-shell">
+    <div id="page-content" class="space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-extrabold text-[#003366]">Evaluación de Controles y Evidencias</h1>
+          <p class="text-sm text-slate-600">
+            Evalúe cada control seleccionado, registre su observación obligatoria y adjunte evidencias (RF03 · RF04 · CP-04 · CP-05 · CP-06).
+          </p>
+        </div>
+        <a href="hallazgos.html" class="btn btn-outline text-xs sm:text-sm">
+          Ir a Hallazgos y Trazabilidad →
+        </a>
+      </div>
+
+      <div id="eval-closed-banner" class="hidden p-4 rounded-xl bg-amber-50 border-2 border-[#F2A900] text-amber-950 text-sm" role="alert">
+        <strong>Auditoría CERRADA (Inmutable):</strong> No se permiten modificaciones en evaluaciones ni evidencias (CP-13).
+      </div>
+
+      <!-- Layout Maestro-Detalle (2 columnas en escritorio, 1 en móvil) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Columna Izquierda: Lista de los 10–15 Controles -->
+        <aside class="card p-4 lg:col-span-4 space-y-3">
+          <div>
+            <div class="flex items-center justify-between text-xs font-bold text-[#003366] mb-1.5">
+              <span>Progreso de Evaluación</span>
+              <span id="eval-progress-text">0 de 0 evaluados</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+              <div id="eval-progress-bar" class="h-full bg-[#00C6D0] rounded-full transition-all" style="width: 0%"></div>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">Atajo: use ↑ / ↓ para cambiar de control</p>
+          </div>
+
+          <div id="controls-master-list" class="space-y-2 max-h-[65vh] overflow-y-auto pr-1">
+            <div class="p-4 text-center text-xs text-slate-500">Cargando controles seleccionados...</div>
+          </div>
+        </aside>
+
+        <!-- Columna Derecha: Panel Integral del Control Activo -->
+        <section id="control-detail-panel" class="card p-5 lg:col-span-8 space-y-6">
+          <div class="p-8 text-center text-sm text-slate-500">
+            Seleccione un control de la lista para iniciar su evaluación.
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Rápido para Registrar Hallazgo desde Evaluación -->
+  <div id="quick-hallazgo-modal" class="fixed inset-0 z-50 bg-slate-900/60 hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden">
+      <div class="bg-[#003366] text-white px-5 py-4 flex items-center justify-between">
+        <h2 id="qh-modal-title" class="font-bold text-base">Registrar Hallazgo para el Control</h2>
+        <button type="button" id="qh-close" class="text-white/80 hover:text-white p-1" aria-label="Cerrar">✕</button>
+      </div>
+      <form id="quick-hallazgo-form" class="p-5 space-y-3 max-h-[82vh] overflow-y-auto" novalidate>
+        <input type="hidden" id="qh-eval-id" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="qh-severidad" class="block text-xs font-bold text-slate-700 mb-1">Severidad *</label>
+            <select id="qh-severidad" class="form-select text-sm">
+              <option value="ALTA">Severidad ALTA</option>
+              <option value="MEDIA" selected>Severidad MEDIA</option>
+              <option value="BAJA">Severidad BAJA</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="qh-condicion" class="block text-xs font-bold text-slate-700 mb-1">Condición (¿Qué se encontró?) *</label>
+          <textarea id="qh-condicion" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-qh-condicion" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label for="qh-criterio" class="block text-xs font-bold text-slate-700 mb-1">Criterio Normativo (ISO 27002:2022) *</label>
+          <textarea id="qh-criterio" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-qh-criterio" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label for="qh-causa" class="block text-xs font-bold text-slate-700 mb-1">Causa Raíz *</label>
+          <textarea id="qh-causa" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-qh-causa" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label for="qh-efecto" class="block text-xs font-bold text-slate-700 mb-1">Efecto / Riesgo *</label>
+          <textarea id="qh-efecto" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-qh-efecto" class="field-error hidden"></p>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
+          <div class="text-xs font-bold text-[#003366]">Recomendación Inicial (RF06)</div>
+          <textarea id="qh-rec-desc" rows="2" class="form-textarea text-sm" placeholder="Acción correctiva recomendada..."></textarea>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <select id="qh-rec-prio" class="form-select text-xs">
+              <option value="ALTA">Prioridad ALTA</option>
+              <option value="MEDIA" selected>Prioridad MEDIA</option>
+              <option value="BAJA">Prioridad BAJA</option>
+            </select>
+            <input id="qh-rec-plazo" type="number" min="1" value="60" class="form-input text-xs" placeholder="Plazo (días)" />
+            <input id="qh-rec-resp" type="text" value="Líder de TI / Seguridad" class="form-input text-xs" placeholder="Responsable" />
+          </div>
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" id="qh-cancel" class="btn btn-outline text-xs">Cancelar</button>
+          <button type="submit" class="btn btn-primary text-xs">Guardar Hallazgo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/evaluacion.js"></script>
+</body>
+</html>

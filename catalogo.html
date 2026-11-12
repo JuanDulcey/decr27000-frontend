@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3. Catálogo de Controles — AuditSys Mini (ISO/IEC 27002:2022)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-50">
+  <div id="app-shell">
+    <div id="page-content" class="space-y-5">
+      <div>
+        <h1 class="text-2xl font-extrabold text-[#003366]">Catálogo ISO/IEC 27002:2022 y Selección (10–15)</h1>
+        <p class="text-sm text-slate-600">
+          Seleccione entre 10 y 15 controles aplicables para la auditoría activa (RF02 · CP-03 · CP-13).
+        </p>
+      </div>
+
+      <!-- Alerta de Seguridad 403 / Bloqueo CP-03 o CP-13 -->
+      <div id="catalog-security-alert" class="hidden p-4 rounded-xl bg-[#fbecec] border-2 border-[#D64545] text-[#7f1d1d] text-sm font-semibold" role="alert"></div>
+
+      <!-- Barra Superior de Selección Flotante (Sticky Bar) -->
+      <section class="sticky top-[68px] z-10 card p-4 bg-white/95 backdrop-blur-xs border-2 border-[#003366]/20 shadow-md">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-sm font-bold text-[#003366]">
+                Controles seleccionados para la auditoría:
+                <span id="selected-count" class="text-lg font-extrabold">0</span> de 10 a 15 permitidos
+              </span>
+              <span id="range-status-badge" class="chip chip-no-implementado">
+                Rango obligatorio: 10 a 15
+              </span>
+            </div>
+            <p class="text-xs text-slate-500">
+              Regla RN02 / CP-03: La selección fuera del rango [10–15] bloquea el avance a ejecución.
+            </p>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button type="button" id="btn-load-suggested" class="btn btn-outline text-xs">
+              ★ Cargar selección sugerida Empresa ABC (13 controles)
+            </button>
+            <button type="button" id="btn-save-selection" class="btn btn-primary text-xs sm:text-sm">
+              Guardar Selección y Continuar a Evaluación →
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filtros y Búsqueda Instantánea -->
+      <section class="card p-4 space-y-3">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="flex-1">
+            <label for="catalog-search" class="sr-only">Buscar control por código ISO, nombre o palabra clave</label>
+            <input id="catalog-search" type="search" class="form-input"
+              placeholder="Buscar por código ISO (ej. 5.1, 8.23), nombre o palabra clave (malware, respaldo, acceso)..." />
+          </div>
+        </div>
+
+        <div id="category-tabs" class="flex flex-wrap gap-2" role="tablist" aria-label="Filtrar por categoría ISO 27002:2022">
+          <button type="button" data-cat="TODOS" class="btn btn-primary text-xs py-1.5">Todos (93)</button>
+          <button type="button" data-cat="ORGANIZACIONAL" class="btn btn-outline text-xs py-1.5">5. Organizacionales (37)</button>
+          <button type="button" data-cat="PERSONAS" class="btn btn-outline text-xs py-1.5">6. Personas / TTHH (8)</button>
+          <button type="button" data-cat="FISICO" class="btn btn-outline text-xs py-1.5">7. Físicos (14)</button>
+          <button type="button" data-cat="TECNOLOGICO" class="btn btn-outline text-xs py-1.5">8. Tecnológicos (34)</button>
+          <button type="button" data-cat="SELECCIONADOS" class="btn btn-outline text-xs py-1.5">
+            Solo Seleccionados (<span id="tab-selected-count">0</span>)
+          </button>
+        </div>
+      </section>
+
+      <!-- Listado de Controles -->
+      <section id="controls-list" class="space-y-3">
+        <div class="card p-6 text-center text-sm text-slate-500">Cargando catálogo de 93 controles...</div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Modal Editar Criterio de Control (CP-13: Admin permitido, Auditor 403) -->
+  <div id="edit-control-modal" class="fixed inset-0 z-50 bg-slate-900/60 hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden">
+      <div class="bg-[#003366] text-white px-5 py-4 flex items-center justify-between">
+        <h2 id="modal-ctrl-title" class="font-bold text-base">Editar Criterio del Catálogo</h2>
+        <button type="button" id="modal-ctrl-close" class="text-white/80 hover:text-white p-1" aria-label="Cerrar">✕</button>
+      </div>
+      <form id="edit-control-form" class="p-5 space-y-3 max-h-[80vh] overflow-y-auto">
+        <div id="modal-ctrl-alert" class="hidden p-3 rounded-lg bg-[#fbecec] border border-[#D64545] text-[#7f1d1d] text-xs font-bold" role="alert"></div>
+        <input type="hidden" id="edit-ctrl-id" />
+
+        <div>
+          <label for="edit-ctrl-nombre" class="block text-xs font-bold text-slate-700 mb-1">Nombre del Control *</label>
+          <input id="edit-ctrl-nombre" type="text" class="form-input text-sm" required />
+        </div>
+        <div>
+          <label for="edit-ctrl-criterio" class="block text-xs font-bold text-slate-700 mb-1">Criterio Normativo (ISO/IEC 27002:2022) *</label>
+          <textarea id="edit-ctrl-criterio" rows="3" class="form-textarea text-sm" required></textarea>
+        </div>
+        <div>
+          <label for="edit-ctrl-pregunta" class="block text-xs font-bold text-slate-700 mb-1">Pregunta Orientadora *</label>
+          <textarea id="edit-ctrl-pregunta" rows="2" class="form-textarea text-sm" required></textarea>
+        </div>
+        <div>
+          <label for="edit-ctrl-ejemplo" class="block text-xs font-bold text-slate-700 mb-1">Ejemplo de Aplicación</label>
+          <input id="edit-ctrl-ejemplo" type="text" class="form-input text-sm" />
+        </div>
+        <div>
+          <label for="edit-ctrl-evidencia" class="block text-xs font-bold text-slate-700 mb-1">Evidencia Sugerida</label>
+          <input id="edit-ctrl-evidencia" type="text" class="form-input text-sm" />
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex flex-col-reverse sm:flex-row justify-end gap-2">
+          <button type="button" id="modal-ctrl-cancel" class="btn btn-outline text-xs">Cancelar</button>
+          <button type="submit" id="modal-ctrl-save" class="btn btn-primary text-xs">Guardar en Catálogo Maestro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/catalogo.js"></script>
+</body>
+</html>

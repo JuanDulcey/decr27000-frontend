@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AuditSys Mini — Acceso al Sistema (ISO/IEC 27002:2022)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col justify-between p-4">
+  <main class="flex-1 flex items-center justify-center py-6">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+      <!-- Cabecera Corporativa -->
+      <div class="bg-[#003366] text-white p-6">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-[#00C6D0] text-[#003366]">
+            ISO/IEC 27001 &amp; 27002:2022
+          </span>
+          <span id="health-pill" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 text-slate-100">
+            Verificando API...
+          </span>
+        </div>
+        <h1 class="text-2xl font-extrabold tracking-tight">AuditSys Mini</h1>
+        <p class="text-sm text-slate-200 mt-1">
+          Sistema de Gestión de Auditorías de Seguridad de la Información (DECR 27000)
+        </p>
+      </div>
+
+      <!-- Aviso de Arranque en Frío de Render (>3s) -->
+      <div id="cold-start-banner" class="hidden bg-amber-50 border-b border-amber-200 px-5 py-3 text-xs text-amber-900">
+        <strong>Despertando el servidor en Render…</strong> En el plan gratuito la primera petición puede tardar entre 30 y 60 segundos.
+      </div>
+
+      <!-- Formulario de Inicio de Sesión -->
+      <form id="login-form" class="p-6 space-y-4" novalidate>
+        <div id="login-alert" class="hidden p-3 rounded-lg bg-[#fbecec] border border-[#D64545] text-[#7f1d1d] text-xs font-semibold" role="alert"></div>
+
+        <div>
+          <label for="correo" class="block text-sm font-semibold text-slate-700 mb-1">
+            Correo institucional <span class="text-[#D64545]">*</span>
+          </label>
+          <input id="correo" name="correo" type="email" autocomplete="username"
+            class="form-input" placeholder="usuario@auditsys.edu.co" required />
+          <p id="error-correo" class="field-error hidden"></p>
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-semibold text-slate-700 mb-1">
+            Contraseña <span class="text-[#D64545]">*</span>
+          </label>
+          <input id="password" name="password" type="password" autocomplete="current-password"
+            class="form-input" placeholder="••••••••" required />
+          <p id="error-password" class="field-error hidden"></p>
+        </div>
+
+        <button type="submit" id="btn-login" class="btn btn-primary w-full text-base">
+          Ingresar al Sistema
+        </button>
+
+        <!-- Bloque de Acceso Rápido Académico / Sustentación -->
+        <div class="pt-4 border-t border-slate-200">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5 text-center">
+            Acceso Rápido Académico / Sustentación (1-Clic)
+          </p>
+          <div class="grid grid-cols-1 gap-2">
+            <button type="button" id="btn-demo-auditor" class="btn btn-outline w-full justify-between text-left">
+              <span>👩‍💻 Ingresar como <strong>Auditora Líder (Ana R.)</strong></span>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">auditor</span>
+            </button>
+            <button type="button" id="btn-demo-admin" class="btn btn-outline w-full justify-between text-left">
+              <span>🛡️ Ingresar como <strong>Administrador SGSI</strong></span>
+              <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-[#e0f9fa] text-[#003366]">admin</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Acordeón Discreto de Configuración de API -->
+        <details class="pt-3 border-t border-slate-100 text-xs text-slate-600">
+          <summary class="cursor-pointer font-semibold text-slate-500 hover:text-[#003366] py-1">
+            Configuración de Conexión API
+          </summary>
+          <div class="mt-2 p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2.5">
+            <div>
+              <label for="api-base-url-input" class="block font-semibold text-slate-700 mb-1">
+                URL Base del Backend (<code class="font-mono">API_BASE_URL</code>)
+              </label>
+              <input id="api-base-url-input" type="url" class="form-input text-xs font-mono" />
+            </div>
+            <div>
+              <label for="api-mode-select" class="block font-semibold text-slate-700 mb-1">
+                Modo de Operación
+              </label>
+              <select id="api-mode-select" class="form-select text-xs">
+                <option value="auto">Automático (Backend REST + Respaldo Local si falla)</option>
+                <option value="remote-strict">Solo Backend REST Remoto</option>
+                <option value="local">Solo Motor Local (Demostración Offline)</option>
+              </select>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" id="btn-save-api-config" class="btn btn-primary text-xs py-1.5 flex-1">
+                Guardar Conexión
+              </button>
+              <button type="button" id="btn-reset-api-config" class="btn btn-outline text-xs py-1.5">
+                Restablecer
+              </button>
+            </div>
+          </div>
+        </details>
+      </form>
+    </div>
+  </main>
+
+  <footer class="text-center text-xs text-slate-500 py-2">
+    Referentes: ISO 19011:2026 · ISO/IEC 27001:2022 · ISO/IEC 27002:2022
+  </footer>
+
+  <script type="module" src="js/pages/login.js"></script>
+</body>
+</html>

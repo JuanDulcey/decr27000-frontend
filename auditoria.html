@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2. Datos de Auditoría — AuditSys Mini (ISO/IEC 27002:2022)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-50">
+  <div id="app-shell">
+    <div id="page-content" class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 id="page-title" class="text-2xl font-extrabold text-[#003366]">Configuración de Auditoría</h1>
+          <p class="text-sm text-slate-600">
+            Registro de datos generales, alcance, referentes normativos y ciclo de vida (RF01 · CP-01 · CP-02 · CP-13).
+          </p>
+        </div>
+        <div id="audit-state-pill"></div>
+      </div>
+
+      <!-- Aviso de Inmutabilidad cuando estado === 'CERRADA' (CP-13) -->
+      <div id="closed-audit-banner" class="hidden p-4 rounded-xl bg-amber-50 border-2 border-[#F2A900] text-amber-950 text-sm" role="alert">
+        <strong>Auditoría CERRADA (Inmutable — RN07 / CP-13):</strong> Esta auditoría ha sido cerrada formalmente. Todos los campos se encuentran bloqueados en modo de solo lectura.
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Formulario Principal (2 columnas) -->
+        <form id="auditoria-form" class="card p-6 lg:col-span-2 space-y-4" novalidate>
+          <div>
+            <label for="organizacion" class="block text-sm font-semibold text-slate-700 mb-1">
+              Organización auditada <span class="text-[#D64545]">*</span>
+            </label>
+            <input id="organizacion" name="organizacion" type="text" maxlength="120" class="form-input"
+              placeholder="Ej. Empresa XYZ S.A.S." required />
+            <p id="error-organizacion" class="field-error hidden"></p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label for="id_auditor" class="block text-sm font-semibold text-slate-700 mb-1">
+                Auditor responsable <span class="text-[#D64545]">*</span>
+              </label>
+              <select id="id_auditor" name="id_auditor" class="form-select" required>
+                <option value="">Cargando auditores...</option>
+              </select>
+              <p id="error-id_auditor" class="field-error hidden"></p>
+            </div>
+
+            <div>
+              <label for="fecha_inicio" class="block text-sm font-semibold text-slate-700 mb-1">
+                Fecha de inicio <span class="text-[#D64545]">*</span>
+              </label>
+              <input id="fecha_inicio" name="fecha_inicio" type="date" class="form-input" required />
+              <p id="error-fecha_inicio" class="field-error hidden"></p>
+            </div>
+
+            <div>
+              <label for="fecha_fin" class="block text-sm font-semibold text-slate-700 mb-1">
+                Fecha de cierre <span class="text-[#D64545]">*</span>
+              </label>
+              <input id="fecha_fin" name="fecha_fin" type="date" class="form-input" required />
+              <p id="error-fecha_fin" class="field-error hidden"></p>
+            </div>
+          </div>
+
+          <div>
+            <label for="objetivo" class="block text-sm font-semibold text-slate-700 mb-1">
+              Objetivo de la auditoría <span class="text-[#D64545]">*</span>
+            </label>
+            <textarea id="objetivo" name="objetivo" rows="3" class="form-textarea"
+              placeholder="Describa el propósito general de la auditoría de seguridad de la información..." required></textarea>
+            <p id="error-objetivo" class="field-error hidden"></p>
+          </div>
+
+          <div>
+            <label for="alcance" class="block text-sm font-semibold text-slate-700 mb-1">
+              Alcance (procesos, infraestructura y ubicaciones) <span class="text-[#D64545]">*</span>
+            </label>
+            <textarea id="alcance" name="alcance" rows="3" class="form-textarea"
+              placeholder="Ej. Servidores de producción, aplicaciones centrales, red corporativa..." required></textarea>
+            <p id="error-alcance" class="field-error hidden"></p>
+          </div>
+
+          <div>
+            <label for="referentes" class="block text-sm font-semibold text-slate-700 mb-1">
+              Referentes normativos <span class="text-[#D64545]">*</span>
+            </label>
+            <input id="referentes" name="referentes" type="text" maxlength="250" class="form-input" required />
+            <p id="error-referentes" class="field-error hidden"></p>
+          </div>
+
+          <div class="pt-3 border-t border-slate-200 flex flex-col sm:flex-row gap-3 justify-end">
+            <a href="catalogo.html" id="btn-go-catalog" class="btn btn-outline hidden">
+              Ir al Catálogo de Controles →
+            </a>
+            <button type="submit" id="btn-save-auditoria" class="btn btn-primary">
+              Guardar Datos de Auditoría
+            </button>
+          </div>
+        </form>
+
+        <!-- Panel Lateral de Ciclo de Vida (1 columna) -->
+        <aside id="lifecycle-panel" class="card p-5 space-y-4">
+          <div>
+            <h2 class="text-base font-bold text-[#003366]">Ciclo de Vida de la Auditoría</h2>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Transiciones verificadas por el servidor (RN02, RN04, RN06, RN07).
+            </p>
+          </div>
+
+          <div id="lifecycle-checklist" class="space-y-2 text-xs bg-slate-50 p-3.5 rounded-lg border border-slate-200">
+            <p class="text-slate-500">Guarde o seleccione una auditoría para ver su estado de transición.</p>
+          </div>
+
+          <div id="lifecycle-actions" class="space-y-2"></div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/auditoria.js"></script>
+</body>
+</html>

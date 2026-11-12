@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1. Dashboard — AuditSys Mini (ISO/IEC 27002:2022)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
+    integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4"
+    crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-slate-50">
+  <div id="app-shell">
+    <div id="page-content" class="space-y-6">
+      <!-- Encabezado y Botón Reset Demo -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-extrabold text-[#003366]">Dashboard de Auditorías SGSI</h1>
+          <p class="text-sm text-slate-600">
+            Indicadores descriptivos en tiempo real de la auditoría activa (RF09 · CP-11).
+          </p>
+        </div>
+        <button type="button" id="btn-reset-demo" class="btn btn-outline text-xs sm:text-sm">
+          <span>↺</span>
+          <span>Restaurar Datos Demo (Empresa ABC)</span>
+        </button>
+      </div>
+
+      <!-- Banner de Resumen de Auditoría Activa -->
+      <section id="active-audit-banner" class="card p-5 bg-gradient-to-r from-[#003366] to-[#00468c] text-white">
+        <div class="skeleton h-6 w-2/3 bg-white/20 mb-2"></div>
+        <div class="skeleton h-4 w-1/2 bg-white/20"></div>
+      </section>
+
+      <!-- Cuatro Tarjetas KPI Superiores (CP-11) -->
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Indicadores clave de cumplimiento">
+        <article class="card p-5 border-l-4 border-l-[#003366]">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Cumplimiento Base (RF07)</p>
+          <p id="kpi-cumplimiento-base" class="text-3xl font-extrabold text-[#003366] mt-1">0,0 %</p>
+          <p id="kpi-cumplimiento-sub" class="text-xs text-slate-600 mt-1.5">Cargando...</p>
+        </article>
+
+        <article class="card p-5 border-l-4 border-l-[#00C6D0]">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Índice Ponderado de Avance</p>
+          <p id="kpi-indice-ponderado" class="text-3xl font-extrabold text-[#003366] mt-1">0,0 %</p>
+          <p id="kpi-indice-sub" class="text-xs text-slate-600 mt-1.5">Cargando...</p>
+        </article>
+
+        <article class="card p-5 border-l-4 border-l-[#2E9E5B]">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Controles Evaluados</p>
+          <p id="kpi-evaluados" class="text-3xl font-extrabold text-slate-900 mt-1">0 / 0</p>
+          <p id="kpi-evaluados-sub" class="text-xs text-slate-600 mt-1.5">Cargando...</p>
+        </article>
+
+        <article class="card p-5 border-l-4 border-l-[#D64545]">
+          <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Hallazgos Documentados</p>
+          <p id="kpi-hallazgos" class="text-3xl font-extrabold text-slate-900 mt-1">0</p>
+          <p id="kpi-hallazgos-sub" class="text-xs text-slate-600 mt-1.5">Cargando...</p>
+        </article>
+      </section>
+
+      <!-- Salvaguarda Descriptiva -->
+      <div class="p-3.5 rounded-lg bg-[#e0f9fa] border border-[#00C6D0] text-xs text-[#003366]">
+        <strong>Nota metodológica:</strong> Los porcentajes presentados son estrictamente descriptivos sobre la muestra de controles seleccionados (10 a 15) y <strong>no constituyen certificación ISO/IEC 27001:2022</strong>.
+      </div>
+
+      <!-- Gráficos Chart.js + Tablas Accesibles Alternativas -->
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <article class="card p-5">
+          <h2 class="text-base font-bold text-[#003366] mb-1">Distribución de Controles por Estado</h2>
+          <p class="text-xs text-slate-500 mb-4">Conteo sobre los controles seleccionados en la auditoría activa.</p>
+          <div class="relative h-64 flex items-center justify-center">
+            <canvas id="chart-estados" aria-label="Gráfico de anillo de controles por estado"></canvas>
+          </div>
+          <div id="table-estados-fallback" class="mt-4 table-responsive"></div>
+        </article>
+
+        <article class="card p-5">
+          <h2 class="text-base font-bold text-[#003366] mb-1">Hallazgos por Severidad</h2>
+          <p class="text-xs text-slate-500 mb-4">Clasificación de criticidad en hallazgos documentados.</p>
+          <div class="relative h-64 flex items-center justify-center">
+            <canvas id="chart-severidad" aria-label="Gráfico de barras de hallazgos por severidad"></canvas>
+          </div>
+          <div id="table-severidad-fallback" class="mt-4 table-responsive"></div>
+        </article>
+      </section>
+
+      <!-- Tabla de Auditorías Recientes -->
+      <section class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h2 class="text-base font-bold text-[#003366]">Auditorías Registradas</h2>
+            <p class="text-xs text-slate-500">Seleccione una auditoría para operar su flujo o consultar su informe.</p>
+          </div>
+          <a href="auditoria.html?mode=new" class="btn btn-primary text-xs">+ Nueva Auditoría</a>
+        </div>
+        <div id="auditorias-table-container" class="table-responsive"></div>
+      </section>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": "decr27000-frontend",
+  "version": "1.0.0",
+  "description": "Frontend MPA para DECR 27000 (AuditSys Mini) — Sistema de Gestión de Auditorías ISO/IEC 27001:2022 & ISO/IEC 27002:2022",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "dev": "npx serve . -l 3000",
+    "start": "npx serve . -l 3000",
+    "lint": "eslint js/ e2e/",
+    "format": "prettier --write \"**/*.{html,css,js,json,md}\"",
+    "test:e2e": "playwright test --config=e2e/playwright.config.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.2",
+    "eslint": "^9.14.0",
+    "globals": "^15.12.0",
+    "prettier": "^3.3.3",
+    "serve": "^14.2.4"
+  }
+}
