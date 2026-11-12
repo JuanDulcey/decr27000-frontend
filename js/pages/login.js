@@ -62,7 +62,7 @@ document.getElementById('btn-reset-api-config')?.addEventListener('click', () =>
 async function checkBackendHealth() {
   if (!healthPill) return;
   healthPill.textContent = 'Verificando API...';
-  healthPill.className = 'px-2.5 py-1 rounded-full text-[11px] font-semibold bg-white/15 text-slate-100';
+  healthPill.className = 'px-3 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600';
 
   const slowTimer = setTimeout(() => {
     coldBanner?.classList.remove('hidden');
@@ -76,14 +76,14 @@ async function checkBackendHealth() {
       healthPill.textContent =
         res.service === 'auditsys-mini-local-engine' ? 'Modo Local Activo' : 'API En Línea';
       healthPill.className =
-        'px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#2E9E5B] text-white';
+        'px-3 py-1 rounded-full text-[11px] font-bold bg-[#eaf6ef] text-[#1e6f40] border border-[#2E9E5B]/30';
     }
   } catch {
     clearTimeout(slowTimer);
     coldBanner?.classList.add('hidden');
     healthPill.textContent = 'Sin conexión remota';
     healthPill.className =
-      'px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#F2A900] text-[#1E293B]';
+      'px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300';
   }
 }
 
@@ -110,7 +110,10 @@ async function performLogin(correo, password) {
     const res = await api.login(correo.trim(), password);
     if (res?.data?.token && res?.data?.usuario) {
       setSession(res.data.token, res.data.usuario);
-      window.location.href = 'dashboard.html';
+      document.body.classList.add('login-leaving');
+      setTimeout(() => {
+        window.location.href = 'dashboard.html';
+      }, 180);
     } else {
       throw new Error('Respuesta de autenticación incompleta.');
     }
@@ -122,6 +125,12 @@ async function performLogin(correo, password) {
     btnLogin.textContent = 'Ingresar al Sistema';
   }
 }
+
+document.getElementById('btn-toggle-password')?.addEventListener('click', () => {
+  if (!passwordInput) return;
+  const isPass = passwordInput.type === 'password';
+  passwordInput.type = isPass ? 'text' : 'password';
+});
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
