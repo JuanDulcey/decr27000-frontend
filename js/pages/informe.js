@@ -18,7 +18,7 @@ import {
 let activeAuditId = null;
 let liveReportData = null;
 
-async function bootstrap() {
+export async function bootstrap() {
   const ctx = await initLayout({
     activeStep: 6,
     onAuditChange: async (nextId) => {
@@ -496,4 +496,6 @@ function renderReportDocument(data) {
   `;
 }
 
-bootstrap();
+if (!window.__AUDITSYS_SOFT_NAV__) {
+  bootstrap();
+}

@@ -460,47 +460,9 @@ body {
 }
 
 /* ==========================================================================
-   Transiciones de Navegación y Prevención de FOUC (Anti-Parpadeo)
+   Transiciones Fluidas de Contenido (Navegación Suave sin Parpadeo)
    ========================================================================== */
-@view-transition {
-  navigation: auto;
-}
-
-#app-shell:not([data-ready='true']) {
-  opacity: 0;
-}
-
-#app-shell[data-ready='true'] {
-  opacity: 1;
-  transition: opacity 160ms ease-out;
-}
-
-#app-sidebar {
-  view-transition-name: app-sidebar;
-}
-
-#app-header {
-  view-transition-name: app-header;
-}
-
-#app-stepper {
-  view-transition-name: app-stepper;
-}
-
-#app-main {
-  view-transition-name: app-main;
-}
-
-@keyframes fade-out-main {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes fade-in-main {
+@keyframes page-enter {
   from {
     opacity: 0;
     transform: translateY(4px);
@@ -511,30 +473,12 @@ body {
   }
 }
 
-::view-transition-old(app-sidebar),
-::view-transition-new(app-sidebar),
-::view-transition-old(app-header),
-::view-transition-new(app-header),
-::view-transition-old(app-stepper),
-::view-transition-new(app-stepper) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-
-::view-transition-old(app-main) {
-  animation: 120ms ease-out both fade-out-main;
-}
-
-::view-transition-new(app-main) {
-  animation: 180ms ease-out both fade-in-main;
+#app-main #page-content {
+  animation: page-enter 160ms ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #app-shell[data-ready='true'] {
-    transition: none;
-  }
-  ::view-transition-old(app-main),
-  ::view-transition-new(app-main) {
+  #app-main #page-content {
     animation: none;
   }
 }

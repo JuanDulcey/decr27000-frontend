@@ -27,7 +27,8 @@ let hallazgos = [];
 let trazabilidadRows = [];
 let trazFilter = 'ALL';
 
-async function bootstrap() {
+export async function bootstrap() {
+  trazFilter = 'ALL';
   const ctx = await initLayout({
     activeStep: 5,
     onAuditChange: async (nextId, nextAudit) => {
@@ -619,4 +620,6 @@ function renderTrazabilidad() {
   `;
 }
 
-bootstrap();
+if (!window.__AUDITSYS_SOFT_NAV__) {
+  bootstrap();
+}

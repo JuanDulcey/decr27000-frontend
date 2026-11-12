@@ -6,7 +6,7 @@ import { api } from '../api.js';
 import { EMPRESA_ABC_SUGGESTED_IDS } from '../config.js';
 import { normalizeSearchText } from '../format.js';
 import { icon } from '../icons.js';
-import { initLayout } from '../layout.js';
+import { initLayout, navigateTo } from '../layout.js';
 import { escapeHtml, renderCategoryBadge, showToast } from '../ui.js';
 
 let allControls = [];
@@ -18,7 +18,9 @@ let activeCategory = 'TODOS';
 let searchTerm = '';
 let searchDebounce = null;
 
-async function bootstrap() {
+export async function bootstrap() {
+  activeCategory = 'TODOS';
+  searchTerm = '';
   const ctx = await initLayout({
     activeStep: 3,
     onAuditChange: async (nextId, nextAudit) => {
@@ -325,7 +327,7 @@ async function saveSelection() {
     const res = await api.saveSeleccionControles(activeAuditId, Array.from(selectedIds));
     showToast(res?.message || 'Selección guardada correctamente.', 'success');
     setTimeout(() => {
-      window.location.href = 'evaluacion.html';
+      navigateTo('evaluacion.html');
     }, 500);
   } catch (err) {
     showSecurityAlert(err.message);
@@ -334,4 +336,6 @@ async function saveSelection() {
   }
 }
 
-bootstrap();
+if (!window.__AUDITSYS_SOFT_NAV__) {
+  bootstrap();
+}

@@ -29,7 +29,13 @@ let isClosedAudit = false;
 let selectedStateDraft = null;
 let hasUnsavedChanges = false;
 
-async function bootstrap() {
+let keyboardBound = false;
+
+export async function bootstrap() {
+  evaluaciones = [];
+  activeEvalId = null;
+  selectedStateDraft = null;
+  hasUnsavedChanges = false;
   const ctx = await initLayout({
     activeStep: 4,
     onAuditChange: async (nextId, nextAudit) => {
@@ -608,7 +614,10 @@ function openQuickHallazgoModal(ev) {
 }
 
 function bindKeyboardNavigation() {
+  if (keyboardBound) return;
+  keyboardBound = true;
   document.addEventListener('keydown', (e) => {
+    if (!document.getElementById('control-detail-panel')) return;
     if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
     if (evaluaciones.length === 0) return;
     const idx = evaluaciones.findIndex((ev) => ev.id_evaluacion === activeEvalId);
@@ -628,4 +637,6 @@ function bindKeyboardNavigation() {
   });
 }
 
-bootstrap();
+if (!window.__AUDITSYS_SOFT_NAV__) {
+  bootstrap();
+}

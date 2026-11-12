@@ -43,6 +43,21 @@ const STEPS = [
   { step: 6, href: 'informe.html', label: '6. Informe Consolidado', short: 'Informe', iconName: 'fileText' },
 ];
 
+const PAGE_CONTROLLERS = {
+  'dashboard.html': './pages/dashboard.js',
+  'auditoria.html': './pages/auditoria.js',
+  'catalogo.html': './pages/catalogo.js',
+  'evaluacion.html': './pages/evaluacion.js',
+  'hallazgos.html': './pages/hallazgos.js',
+  'informe.html': './pages/informe.js',
+};
+
+let shellInitialized = false;
+let currentOnAuditChange = null;
+let cachedAuditorias = [];
+let closeMobileSidebarFn = null;
+let isNavigating = false;
+
 /**
  * Inicializa el layout compartido en cualquiera de las 6 páginas internas
  * @param {object} opts { activeStep: 1..6, onAuditChange?: (idAuditoria, auditoriaObj) => void }
@@ -51,14 +66,24 @@ export async function initLayout({ activeStep = 1, onAuditChange = null } = {}) 
   const user = requireAuth();
   if (!user) return null;
 
-  renderShell(user, activeStep);
-  bindSidebarEvents();
+  currentOnAuditChange = onAuditChange;
+
+  if (!shellInitialized) {
+    renderShell(user, activeStep);
+    bindSidebarEvents();
+    bindSoftNavigation();
+    shellInitialized = true;
+  } else {
+    setActiveNavStep(activeStep);
+  }
 
   let auditorias = [];
   try {
     const res = await api.getAuditorias();
     auditorias = Array.isArray(res?.data) ? res.data : [];
+    cachedAuditorias = auditorias;
   } catch (err) {
+    auditorias = cachedAuditorias;
     showToast(`No se pudieron cargar las auditorías: ${err.message}`, 'error');
   }
 
@@ -72,15 +97,16 @@ export async function initLayout({ activeStep = 1, onAuditChange = null } = {}) 
   populateAuditSelector(auditorias, activeAudit);
 
   const selector = document.getElementById('global-audit-selector');
-  if (selector) {
+  if (selector && !selector.dataset.boundChange) {
+    selector.dataset.boundChange = 'true';
     selector.addEventListener('change', (e) => {
       const nextId = Number(e.target.value);
       if (!nextId) return;
       setActiveAuditId(nextId);
-      const nextAudit = auditorias.find((a) => a.id_auditoria === nextId) || null;
+      const nextAudit = cachedAuditorias.find((a) => a.id_auditoria === nextId) || null;
       updateAuditStatusBadge(nextAudit);
-      if (typeof onAuditChange === 'function') {
-        onAuditChange(nextId, nextAudit);
+      if (typeof currentOnAuditChange === 'function') {
+        currentOnAuditChange(nextId, nextAudit);
       } else {
         window.location.reload();
       }
@@ -88,6 +114,145 @@ export async function initLayout({ activeStep = 1, onAuditChange = null } = {}) 
   }
 
   return { user, auditorias, activeAudit, activeAuditId: activeId };
+}
+
+function setActiveNavStep(activeStep) {
+  const sidebarNav = document.querySelector('#app-sidebar nav');
+  if (sidebarNav) {
+    sidebarNav.querySelectorAll('a[data-step]').forEach((link) => {
+      const step = Number(link.getAttribute('data-step'));
+      const isActive = step === activeStep;
+      link.className = `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold min-h-[44px] transition-colors ${
+        isActive
+          ? 'bg-[#00C6D0] text-[#003366] shadow-sm'
+          : 'text-slate-100 hover:bg-white/10 hover:text-white'
+      }`;
+      if (isActive) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+  }
+
+  const stepperNav = document.querySelector('#app-stepper nav');
+  if (stepperNav) {
+    stepperNav.querySelectorAll('a[data-step]').forEach((link) => {
+      const step = Number(link.getAttribute('data-step'));
+      const isActive = step === activeStep;
+      link.classList.toggle('active', isActive);
+      if (isActive) link.setAttribute('aria-current', 'step');
+      else link.removeAttribute('aria-current');
+    });
+  }
+}
+
+function getPageBasename(urlObj) {
+  const parts = urlObj.pathname.split('/');
+  return parts[parts.length - 1] || '';
+}
+
+async function ensureHeadScripts(doc) {
+  const scripts = Array.from(doc.head?.querySelectorAll('script[src]') || []);
+  for (const s of scripts) {
+    const src = s.getAttribute('src');
+    if (!src || src.includes('tailwindcss.com')) continue;
+    const alreadyLoaded = Array.from(document.head.querySelectorAll('script[src]')).some(
+      (existing) => existing.getAttribute('src') === src
+    );
+    if (alreadyLoaded) continue;
+
+    await new Promise((resolve) => {
+      const el = document.createElement('script');
+      el.src = src;
+      if (s.integrity) el.integrity = s.integrity;
+      if (s.crossOrigin) el.crossOrigin = s.crossOrigin;
+      el.onload = resolve;
+      el.onerror = resolve;
+      document.head.appendChild(el);
+    });
+  }
+}
+
+export async function navigateTo(url, { pushState = true } = {}) {
+  const targetUrl = new URL(url, window.location.href);
+  const basename = getPageBasename(targetUrl);
+  const controllerPath = PAGE_CONTROLLERS[basename];
+
+  if (targetUrl.origin !== window.location.origin || !controllerPath) {
+    window.location.href = targetUrl.href;
+    return;
+  }
+
+  if (isNavigating) return;
+  isNavigating = true;
+
+  if (typeof closeMobileSidebarFn === 'function') {
+    closeMobileSidebarFn();
+  }
+
+  try {
+    const res = await fetch(targetUrl.href, { credentials: 'same-origin' });
+    if (!res.ok) {
+      window.location.href = targetUrl.href;
+      return;
+    }
+
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const nextPageContent = doc.getElementById('page-content');
+    const appMain = document.getElementById('app-main');
+
+    if (!nextPageContent || !appMain) {
+      window.location.href = targetUrl.href;
+      return;
+    }
+
+    await ensureHeadScripts(doc);
+
+    if (doc.title) document.title = doc.title;
+    if (pushState) {
+      window.history.pushState({}, '', targetUrl.pathname + targetUrl.search + targetUrl.hash);
+    }
+
+    const imported = document.importNode(nextPageContent, true);
+    appMain.replaceChildren(imported);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+
+    window.__AUDITSYS_SOFT_NAV__ = true;
+    const mod = await import(controllerPath);
+    if (typeof mod?.bootstrap === 'function') {
+      await mod.bootstrap();
+    }
+  } catch {
+    window.location.href = targetUrl.href;
+  } finally {
+    isNavigating = false;
+  }
+}
+
+function bindSoftNavigation() {
+  document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+      return;
+    }
+    const anchor = e.target?.closest?.('a[href]');
+    if (!anchor) return;
+    if (anchor.hasAttribute('download') || (anchor.target && anchor.target !== '_self')) return;
+
+    const rawHref = anchor.getAttribute('href') || '';
+    if (!rawHref || rawHref.startsWith('#') || rawHref.startsWith('javascript:')) return;
+
+    const targetUrl = new URL(anchor.href, window.location.href);
+    const basename = getPageBasename(targetUrl);
+    if (targetUrl.origin === window.location.origin && PAGE_CONTROLLERS[basename]) {
+      e.preventDefault();
+      if (targetUrl.href !== window.location.href) {
+        navigateTo(targetUrl.href);
+      }
+    }
+  });
+
+  window.addEventListener('popstate', () => {
+    navigateTo(window.location.href, { pushState: false });
+  });
 }
 
 function renderShell(user, activeStep) {
@@ -105,7 +270,7 @@ function renderShell(user, activeStep) {
   const navLinksHtml = STEPS.map((s) => {
     const isActive = s.step === activeStep;
     return `
-      <a href="${s.href}"
+      <a href="${s.href}" data-step="${s.step}"
          class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold min-h-[44px] transition-colors ${
            isActive
              ? 'bg-[#00C6D0] text-[#003366] shadow-sm'
@@ -121,7 +286,7 @@ function renderShell(user, activeStep) {
   const stepperHtml = STEPS.map((s) => {
     const isActive = s.step === activeStep;
     return `
-      <a href="${s.href}" class="stepper-step ${isActive ? 'active' : ''}" ${
+      <a href="${s.href}" data-step="${s.step}" class="stepper-step ${isActive ? 'active' : ''}" ${
         isActive ? 'aria-current="step"' : ''
       }>
         <span class="step-num">${s.step}</span>
@@ -259,6 +424,8 @@ function bindSidebarEvents() {
       if (openBtn) openBtn.setAttribute('aria-expanded', 'false');
     }
   };
+
+  closeMobileSidebarFn = () => toggleSidebar(false);
 
   if (openBtn) openBtn.addEventListener('click', () => toggleSidebar(true));
   if (closeBtn) closeBtn.addEventListener('click', () => toggleSidebar(false));

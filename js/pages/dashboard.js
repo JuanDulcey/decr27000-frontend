@@ -13,7 +13,7 @@ let chartEstados = null;
 let chartSeveridad = null;
 let currentUser = null;
 
-async function bootstrap() {
+export async function bootstrap() {
   const ctx = await initLayout({
     activeStep: 1,
     onAuditChange: (nextId) => loadDashboard(nextId),
@@ -354,4 +354,6 @@ function renderAuditoriasTable(auditorias, activeId) {
   });
 }
 
-bootstrap();
+if (!window.__AUDITSYS_SOFT_NAV__) {
+  bootstrap();
+}

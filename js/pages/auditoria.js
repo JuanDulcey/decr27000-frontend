@@ -16,19 +16,30 @@ import {
   validateAuditoriaForm,
 } from '../validators.js';
 
-const urlParams = new URLSearchParams(window.location.search);
-let isNewMode = urlParams.get('mode') === 'new';
-let currentAuditId = Number(urlParams.get('id')) || null;
+let isNewMode = false;
+let currentAuditId = null;
 let currentAudit = null;
 
-const form = document.getElementById('auditoria-form');
-const pageTitle = document.getElementById('page-title');
-const btnSave = document.getElementById('btn-save-auditoria');
-const btnGoCatalog = document.getElementById('btn-go-catalog');
-const closedBanner = document.getElementById('closed-audit-banner');
-const statePill = document.getElementById('audit-state-pill');
+let form = null;
+let pageTitle = null;
+let btnSave = null;
+let btnGoCatalog = null;
+let closedBanner = null;
+let statePill = null;
 
-async function bootstrap() {
+export async function bootstrap() {
+  const urlParams = new URLSearchParams(window.location.search);
+  isNewMode = urlParams.get('mode') === 'new';
+  currentAuditId = Number(urlParams.get('id')) || null;
+  currentAudit = null;
+
+  form = document.getElementById('auditoria-form');
+  pageTitle = document.getElementById('page-title');
+  btnSave = document.getElementById('btn-save-auditoria');
+  btnGoCatalog = document.getElementById('btn-go-catalog');
+  closedBanner = document.getElementById('closed-audit-banner');
+  statePill = document.getElementById('audit-state-pill');
+
   const ctx = await initLayout({
     activeStep: 2,
     onAuditChange: async (nextId) => {
@@ -40,6 +51,7 @@ async function bootstrap() {
   if (!ctx) return;
 
   attachLiveValidationClear(form);
+  bindFormSubmit();
   await loadUsuarios();
 
   if (isNewMode) {
@@ -258,7 +270,9 @@ async function renderLifecyclePanel(audit) {
   });
 }
 
-form.addEventListener('submit', async (e) => {
+function bindFormSubmit() {
+  if (!form) return;
+  form.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearAllFieldErrors(form);
 
@@ -316,6 +330,9 @@ form.addEventListener('submit', async (e) => {
   } finally {
     btnSave.disabled = currentAudit?.estado === 'CERRADA';
   }
-});
+  });
+}
 
-bootstrap();
+if (!window.__AUDITSYS_SOFT_NAV__) {
+  bootstrap();
+}
