@@ -1,4 +1,22 @@
-.idea/
+# Dependencias y despliegues
 node_modules/
+.pnpm-store/
+.vercel/
 dist/
+build/
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# IDEs y Sistema Operativo
+.idea/
+.vscode/
 .DS_Store
+Thumbs.db
