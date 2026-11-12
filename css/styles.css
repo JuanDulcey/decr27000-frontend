@@ -3,6 +3,8 @@
    Normas: ISO 19011:2026 · ISO/IEC 27001:2022 · ISO/IEC 27002:2022
    ========================================================================== */
 
+@import url('https://fonts.googleapis.com/css2?family=Ancizar+Sans:ital,wght@0,100..1000;1,100..1000&display=swap');
+
 :root {
   /* Paleta Corporativa Oficial (FRONTEND_SPEC §3.1) */
   --color-primary: #003366;
@@ -43,8 +45,8 @@
 }
 
 html {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif;
+  font-family: 'Ancizar Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif !important;
   color: var(--color-text);
   background-color: var(--color-bg);
   scroll-behavior: smooth;
@@ -54,6 +56,8 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
+  font-family: 'Ancizar Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif !important;
   background-color: var(--color-bg);
   color: var(--color-text);
   line-height: 1.5;
