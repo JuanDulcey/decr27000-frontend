@@ -13,33 +13,34 @@ import {
   setActiveAuditId,
 } from './auth.js';
 import { OFFICIAL_REFERENTES } from './config.js';
+import { icon } from './icons.js';
 import { escapeHtml, renderAuditStateBadge, showToast } from './ui.js';
 
 const STEPS = [
-  { step: 1, href: 'dashboard.html', label: '1. Dashboard', short: 'Dashboard', icon: '📊' },
-  { step: 2, href: 'auditoria.html', label: '2. Datos de Auditoría', short: 'Auditoría', icon: '📋' },
+  { step: 1, href: 'dashboard.html', label: '1. Dashboard', short: 'Dashboard', iconName: 'chart' },
+  { step: 2, href: 'auditoria.html', label: '2. Datos de Auditoría', short: 'Auditoría', iconName: 'clipboard' },
   {
     step: 3,
     href: 'catalogo.html',
     label: '3. Catálogo y Selección [10-15]',
     short: 'Catálogo',
-    icon: '📚',
+    iconName: 'book',
   },
   {
     step: 4,
     href: 'evaluacion.html',
     label: '4. Evaluación y Evidencias',
     short: 'Evaluación',
-    icon: '✓',
+    iconName: 'checkCircle',
   },
   {
     step: 5,
     href: 'hallazgos.html',
     label: '5. Hallazgos y Recomendaciones',
     short: 'Hallazgos',
-    icon: '⚠',
+    iconName: 'alertTriangle',
   },
-  { step: 6, href: 'informe.html', label: '6. Informe Consolidado', short: 'Informe', icon: '📄' },
+  { step: 6, href: 'informe.html', label: '6. Informe Consolidado', short: 'Informe', iconName: 'fileText' },
 ];
 
 /**
@@ -111,7 +112,7 @@ function renderShell(user, activeStep) {
              : 'text-slate-100 hover:bg-white/10 hover:text-white'
          }"
          ${isActive ? 'aria-current="page"' : ''}>
-        <span class="w-5 text-center" aria-hidden="true">${s.icon}</span>
+        <span class="w-5 flex items-center justify-center" aria-hidden="true">${icon(s.iconName, 'w-4 h-4')}</span>
         <span>${escapeHtml(s.label)}</span>
       </a>
     `;
@@ -149,7 +150,7 @@ function renderShell(user, activeStep) {
               <div class="text-[11px] text-[#00C6D0] font-semibold tracking-wide">ISO/IEC 27002:2022</div>
             </div>
           </a>
-          <button type="button" id="sidebar-close-btn" class="md:hidden text-white/80 hover:text-white p-2 min-h-[44px] min-w-[44px]" aria-label="Cerrar menú">✕</button>
+          <button type="button" id="sidebar-close-btn" class="md:hidden text-white/80 hover:text-white p-2 min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Cerrar menú">${icon('x', 'w-5 h-5')}</button>
         </div>
 
         <nav class="mt-5 space-y-1.5" aria-label="Navegación principal">
@@ -191,7 +192,7 @@ function renderShell(user, activeStep) {
             <button type="button" id="sidebar-open-btn"
               class="md:hidden btn btn-outline px-2.5 min-h-[44px] min-w-[44px]"
               aria-label="Abrir menú lateral" aria-expanded="false">
-              ☰
+              ${icon('menu', 'w-5 h-5')}
             </button>
 
             <div class="flex-1 max-w-md">

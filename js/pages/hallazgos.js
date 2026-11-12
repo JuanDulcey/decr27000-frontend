@@ -4,6 +4,7 @@
  */
 
 import { api } from '../api.js';
+import { icon } from '../icons.js';
 import { initLayout, populateAuditSelector } from '../layout.js';
 import {
   confirmModal,
@@ -295,9 +296,9 @@ function renderClosurePanel() {
   const estado = activeAudit?.estado || 'BORRADOR';
   const btns = [];
   if (estado === 'EN_EJECUCION') {
-    btns.push({ target: 'EN_REVISION', label: '◉ Enviar a Revisión', cls: 'btn-primary' });
+    btns.push({ target: 'EN_REVISION', label: `${icon('eye', 'w-3.5 h-3.5')} Enviar a Revisión`, cls: 'btn-primary inline-flex items-center gap-1.5' });
   } else if (estado === 'EN_REVISION') {
-    btns.push({ target: 'CERRADA', label: '🔒 Cerrar Auditoría', cls: 'btn-success' });
+    btns.push({ target: 'CERRADA', label: `${icon('lock', 'w-3.5 h-3.5')} Cerrar Auditoría`, cls: 'btn-success inline-flex items-center gap-1.5' });
   }
 
   actionsEl.innerHTML = btns
@@ -361,8 +362,9 @@ function renderHallazgosList() {
       const recs = h.recomendaciones || [];
       const recsHtml =
         recs.length === 0
-          ? `<div class="p-3 rounded-lg bg-[#fbecec] border border-[#D64545] text-[#7f1d1d] text-xs font-bold">
-               ⚠ Sin recomendación asociada (bloquea el cierre según RN06 / CP-08).
+          ? `<div class="p-3 rounded-lg bg-[#fbecec] border border-[#D64545] text-[#7f1d1d] text-xs font-bold flex items-center gap-1.5">
+               ${icon('alertTriangle', 'w-4 h-4 shrink-0')}
+               <span>Sin recomendación asociada (bloquea el cierre según RN06 / CP-08).</span>
              </div>`
           : recs
               .map(
@@ -410,7 +412,7 @@ function renderHallazgosList() {
                 : `<div class="flex items-center gap-1">
                     <button type="button" data-edit-hall="${escapeHtml(
                       h.id_hallazgo
-                    )}" class="btn btn-outline text-xs py-1 px-2.5">✎ Editar</button>
+                    )}" class="btn btn-outline text-xs py-1 px-2.5 inline-flex items-center gap-1">${icon('edit', 'w-3.5 h-3.5')} Editar</button>
                     <button type="button" data-del-hall="${escapeHtml(
                       h.id_hallazgo
                     )}" class="btn btn-ghost text-xs text-[#D64545]">Eliminar</button>

@@ -5,6 +5,7 @@
 import { api } from '../api.js';
 import { EMPRESA_ABC_SUGGESTED_IDS } from '../config.js';
 import { normalizeSearchText } from '../format.js';
+import { icon } from '../icons.js';
 import { initLayout } from '../layout.js';
 import { escapeHtml, renderCategoryBadge, showToast } from '../ui.js';
 
@@ -168,10 +169,10 @@ function updateSelectionHeader() {
   if (badgeEl) {
     if (count >= 10 && count <= 15) {
       badgeEl.className = 'chip chip-implementado';
-      badgeEl.innerHTML = `<span aria-hidden="true">✓</span><span>Rango válido (${count} controles seleccionados)</span>`;
+      badgeEl.innerHTML = `${icon('check', 'w-3.5 h-3.5')}<span>Rango válido (${count} controles seleccionados)</span>`;
     } else {
       badgeEl.className = 'chip chip-no-implementado';
-      badgeEl.innerHTML = `<span aria-hidden="true">✕</span><span>Rango obligatorio: seleccione entre 10 y 15 controles (actual: ${count})</span>`;
+      badgeEl.innerHTML = `${icon('x', 'w-3.5 h-3.5')}<span>Rango obligatorio: seleccione entre 10 y 15 controles (actual: ${count})</span>`;
     }
   }
 }
@@ -247,7 +248,7 @@ function renderControls() {
                   data-toggle-ctrl="${escapeHtml(c.id_control)}"
                   ${isSelected ? 'checked' : ''}
                   ${isClosedAudit ? 'disabled' : ''} />
-                <span class="text-xs font-bold">${isSelected ? 'En auditoría ✓' : 'Incluir en auditoría'}</span>
+                <span class="text-xs font-bold inline-flex items-center gap-1">${isSelected ? `En auditoría ${icon('check', 'w-3.5 h-3.5')}` : 'Incluir en auditoría'}</span>
               </label>
 
               ${
@@ -257,8 +258,8 @@ function renderControls() {
               }
 
               <button type="button" data-edit-ctrl="${escapeHtml(c.id_control)}"
-                class="btn btn-ghost text-xs text-slate-600 hover:text-[#003366] px-2.5">
-                ✎ Editar Criterio (Catálogo)
+                class="btn btn-ghost text-xs text-slate-600 hover:text-[#003366] px-2.5 inline-flex items-center gap-1.5">
+                ${icon('edit', 'w-3.5 h-3.5')} Editar Criterio (Catálogo)
               </button>
             </div>
           </div>

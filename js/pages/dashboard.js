@@ -5,6 +5,7 @@
 import { api } from '../api.js';
 import { getActiveAuditId, setActiveAuditId } from '../auth.js';
 import { formatDate, formatPercent } from '../format.js';
+import { icon } from '../icons.js';
 import { initLayout, populateAuditSelector } from '../layout.js';
 import { confirmModal, escapeHtml, renderAuditStateBadge, showToast } from '../ui.js';
 
@@ -244,11 +245,11 @@ function renderCharts(ind, sev) {
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-200">
-          <tr><td class="px-3 py-1.5 font-medium text-[#2E9E5B]">✓ Implementado</td><td class="px-3 py-1.5 text-right font-bold">${ind.implementados}</td></tr>
-          <tr><td class="px-3 py-1.5 font-medium text-amber-700">◐ Parcial</td><td class="px-3 py-1.5 text-right font-bold">${ind.parciales}</td></tr>
-          <tr><td class="px-3 py-1.5 font-medium text-[#D64545]">✕ No implementado</td><td class="px-3 py-1.5 text-right font-bold">${ind.no_implementados}</td></tr>
-          <tr><td class="px-3 py-1.5 font-medium text-slate-600">— No aplicable (excluido)</td><td class="px-3 py-1.5 text-right font-bold">${ind.no_aplicables}</td></tr>
-          <tr><td class="px-3 py-1.5 font-medium text-slate-500">○ Pendiente de evaluar</td><td class="px-3 py-1.5 text-right font-bold">${ind.pendientes}</td></tr>
+          <tr><td class="px-3 py-1.5 font-medium text-[#2E9E5B] inline-flex items-center gap-1.5">${icon('check', 'w-3.5 h-3.5')} Implementado</td><td class="px-3 py-1.5 text-right font-bold">${ind.implementados}</td></tr>
+          <tr><td class="px-3 py-1.5 font-medium text-amber-700 inline-flex items-center gap-1.5">${icon('circleHalf', 'w-3.5 h-3.5')} Parcial</td><td class="px-3 py-1.5 text-right font-bold">${ind.parciales}</td></tr>
+          <tr><td class="px-3 py-1.5 font-medium text-[#D64545] inline-flex items-center gap-1.5">${icon('x', 'w-3.5 h-3.5')} No implementado</td><td class="px-3 py-1.5 text-right font-bold">${ind.no_implementados}</td></tr>
+          <tr><td class="px-3 py-1.5 font-medium text-slate-600 inline-flex items-center gap-1.5">${icon('minus', 'w-3.5 h-3.5')} No aplicable (excluido)</td><td class="px-3 py-1.5 text-right font-bold">${ind.no_aplicables}</td></tr>
+          <tr><td class="px-3 py-1.5 font-medium text-slate-500 inline-flex items-center gap-1.5">${icon('circle', 'w-3.5 h-3.5')} Pendiente de evaluar</td><td class="px-3 py-1.5 text-right font-bold">${ind.pendientes}</td></tr>
         </tbody>
       </table>
     `;
@@ -265,9 +266,9 @@ function renderCharts(ind, sev) {
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-200">
-          <tr><td class="px-3 py-1.5 font-medium text-[#D64545]">▲ Severidad Alta</td><td class="px-3 py-1.5 text-right font-bold">${sev?.ALTA || 0}</td></tr>
-          <tr><td class="px-3 py-1.5 font-medium text-amber-700">◆ Severidad Media</td><td class="px-3 py-1.5 text-right font-bold">${sev?.MEDIA || 0}</td></tr>
-          <tr><td class="px-3 py-1.5 font-medium text-[#2E9E5B]">▼ Severidad Baja</td><td class="px-3 py-1.5 text-right font-bold">${sev?.BAJA || 0}</td></tr>
+          <tr><td class="px-3 py-1.5 font-medium text-[#D64545] inline-flex items-center gap-1.5">${icon('arrowUp', 'w-3.5 h-3.5')} Severidad Alta</td><td class="px-3 py-1.5 text-right font-bold">${sev?.ALTA || 0}</td></tr>
+          <tr><td class="px-3 py-1.5 font-medium text-amber-700 inline-flex items-center gap-1.5">${icon('diamond', 'w-3.5 h-3.5')} Severidad Media</td><td class="px-3 py-1.5 text-right font-bold">${sev?.MEDIA || 0}</td></tr>
+          <tr><td class="px-3 py-1.5 font-medium text-[#2E9E5B] inline-flex items-center gap-1.5">${icon('arrowDown', 'w-3.5 h-3.5')} Severidad Baja</td><td class="px-3 py-1.5 text-right font-bold">${sev?.BAJA || 0}</td></tr>
         </tbody>
       </table>
     `;

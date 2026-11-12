@@ -3,6 +3,8 @@
  * Especificación: FRONTEND_SPEC.md §3.1, §3.2 y PLAN_DESARROLLO.md §2.2
  */
 
+import { icon } from './icons.js';
+
 /**
  * Escapa caracteres HTML para prevenir ataques XSS al renderizar datos de la API
  */
@@ -23,15 +25,15 @@ export function renderControlStateChip(estado) {
   const normalized = String(estado || 'PENDIENTE').toUpperCase();
   switch (normalized) {
     case 'IMPLEMENTADO':
-      return `<span class="chip chip-implementado" title="Control implementado conforme al criterio"><span aria-hidden="true">✓</span><span>Implementado</span></span>`;
+      return `<span class="chip chip-implementado" title="Control implementado conforme al criterio">${icon('check', 'w-3.5 h-3.5')}<span>Implementado</span></span>`;
     case 'PARCIAL':
-      return `<span class="chip chip-parcial" title="Control implementado parcialmente con brechas"><span aria-hidden="true">◐</span><span>Parcial</span></span>`;
+      return `<span class="chip chip-parcial" title="Control implementado parcialmente con brechas">${icon('circleHalf', 'w-3.5 h-3.5')}<span>Parcial</span></span>`;
     case 'NO_IMPLEMENTADO':
-      return `<span class="chip chip-no-implementado" title="Sin evidencia de implementación"><span aria-hidden="true">✕</span><span>No implementado</span></span>`;
+      return `<span class="chip chip-no-implementado" title="Sin evidencia de implementación">${icon('x', 'w-3.5 h-3.5')}<span>No implementado</span></span>`;
     case 'NO_APLICABLE':
-      return `<span class="chip chip-no-aplicable" title="Fuera del alcance con justificación formal"><span aria-hidden="true">—</span><span>No aplicable</span></span>`;
+      return `<span class="chip chip-no-aplicable" title="Fuera del alcance con justificación formal">${icon('minus', 'w-3.5 h-3.5')}<span>No aplicable</span></span>`;
     default:
-      return `<span class="chip chip-pendiente" title="Pendiente de evaluar"><span aria-hidden="true">○</span><span>Pendiente de evaluar</span></span>`;
+      return `<span class="chip chip-pendiente" title="Pendiente de evaluar">${icon('circle', 'w-3.5 h-3.5')}<span>Pendiente de evaluar</span></span>`;
   }
 }
 
@@ -42,12 +44,12 @@ export function renderSeverityBadge(severidad, prefix = 'Severidad') {
   const norm = String(severidad || 'MEDIA').toUpperCase();
   const labelPrefix = prefix ? `${escapeHtml(prefix)} ` : '';
   if (norm === 'ALTA') {
-    return `<span class="chip badge-alta"><span aria-hidden="true">▲</span><span>${labelPrefix}Alta</span></span>`;
+    return `<span class="chip badge-alta">${icon('arrowUp', 'w-3.5 h-3.5')}<span>${labelPrefix}Alta</span></span>`;
   }
   if (norm === 'BAJA') {
-    return `<span class="chip badge-baja"><span aria-hidden="true">▼</span><span>${labelPrefix}Baja</span></span>`;
+    return `<span class="chip badge-baja">${icon('arrowDown', 'w-3.5 h-3.5')}<span>${labelPrefix}Baja</span></span>`;
   }
-  return `<span class="chip badge-media"><span aria-hidden="true">◆</span><span>${labelPrefix}Media</span></span>`;
+  return `<span class="chip badge-media">${icon('diamond', 'w-3.5 h-3.5')}<span>${labelPrefix}Media</span></span>`;
 }
 
 /**
@@ -57,13 +59,13 @@ export function renderAuditStateBadge(estado) {
   const norm = String(estado || 'BORRADOR').toUpperCase();
   switch (norm) {
     case 'EN_EJECUCION':
-      return `<span class="audit-badge audit-badge-ejecucion"><span aria-hidden="true">▶</span><span>EN EJECUCIÓN</span></span>`;
+      return `<span class="audit-badge audit-badge-ejecucion">${icon('play', 'w-3.5 h-3.5')}<span>EN EJECUCIÓN</span></span>`;
     case 'EN_REVISION':
-      return `<span class="audit-badge audit-badge-revision"><span aria-hidden="true">◉</span><span>EN REVISIÓN</span></span>`;
+      return `<span class="audit-badge audit-badge-revision">${icon('eye', 'w-3.5 h-3.5')}<span>EN REVISIÓN</span></span>`;
     case 'CERRADA':
-      return `<span class="audit-badge audit-badge-cerrada"><span aria-hidden="true">🔒</span><span>CERRADA (Inmutable)</span></span>`;
+      return `<span class="audit-badge audit-badge-cerrada">${icon('lock', 'w-3.5 h-3.5')}<span>CERRADA (Inmutable)</span></span>`;
     default:
-      return `<span class="audit-badge audit-badge-borrador"><span aria-hidden="true">✎</span><span>BORRADOR</span></span>`;
+      return `<span class="audit-badge audit-badge-borrador">${icon('edit', 'w-3.5 h-3.5')}<span>BORRADOR</span></span>`;
   }
 }
 
@@ -102,22 +104,22 @@ export function showToast(message, type = 'info', duration = 5000) {
   const styles = {
     success: {
       bg: 'bg-[#2E9E5B] text-white border-[#25824a]',
-      icon: '✓',
+      iconName: 'checkCircle',
       role: 'status',
     },
     error: {
       bg: 'bg-[#D64545] text-white border-[#b83232]',
-      icon: '✕',
+      iconName: 'alertCircle',
       role: 'alert',
     },
     warning: {
       bg: 'bg-[#F2A900] text-[#1E293B] border-amber-600',
-      icon: '⚠',
+      iconName: 'alertTriangle',
       role: 'alert',
     },
     info: {
       bg: 'bg-[#003366] text-white border-[#002244]',
-      icon: 'ℹ',
+      iconName: 'info',
       role: 'status',
     },
   };
@@ -128,9 +130,9 @@ export function showToast(message, type = 'info', duration = 5000) {
   toast.className = `pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-lg shadow-lg border ${cfg.bg} transition-all duration-200`;
 
   const iconSpan = document.createElement('span');
-  iconSpan.className = 'font-bold text-base leading-5 select-none';
+  iconSpan.className = 'leading-5 select-none pt-0.5';
   iconSpan.setAttribute('aria-hidden', 'true');
-  iconSpan.textContent = cfg.icon;
+  iconSpan.innerHTML = icon(cfg.iconName, 'w-4 h-4');
 
   const textDiv = document.createElement('div');
   textDiv.className = 'text-sm font-medium flex-1 leading-snug';
@@ -141,7 +143,7 @@ export function showToast(message, type = 'info', duration = 5000) {
   closeBtn.className =
     'ml-2 text-current opacity-80 hover:opacity-100 font-bold text-sm leading-none p-1 rounded';
   closeBtn.setAttribute('aria-label', 'Cerrar notificación');
-  closeBtn.textContent = '✕';
+  closeBtn.innerHTML = icon('x', 'w-4 h-4');
   closeBtn.addEventListener('click', () => {
     toast.remove();
   });
@@ -204,7 +206,7 @@ export function confirmModal({
       <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
         <div class="${danger ? 'bg-[#D64545]' : 'bg-[#003366]'} text-white px-5 py-4 flex items-center justify-between">
           <h3 class="font-bold text-base">${escapeHtml(title)}</h3>
-          <button type="button" id="modal-close-x" class="text-white/80 hover:text-white p-1" aria-label="Cerrar">✕</button>
+          <button type="button" id="modal-close-x" class="text-white/80 hover:text-white p-1" aria-label="Cerrar">${icon('x', 'w-4 h-4')}</button>
         </div>
         <div class="p-5">
           <p class="text-sm text-slate-700 leading-relaxed">${escapeHtml(message)}</p>

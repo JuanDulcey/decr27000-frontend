@@ -4,6 +4,7 @@
 
 import { api } from '../api.js';
 import { formatDate } from '../format.js';
+import { icon } from '../icons.js';
 import { initLayout } from '../layout.js';
 import {
   confirmModal,
@@ -118,9 +119,9 @@ function renderMasterList() {
               ev.codigo_iso
             )}</span>
             <div class="flex items-center gap-1.5 text-xs">
-              ${evCount > 0 ? `<span title="${evCount} evidencia(s)">📎${evCount}</span>` : ''}
-              ${hallCount > 0 ? `<span class="text-[#D64545] font-bold" title="${hallCount} hallazgo(s)">⚠${hallCount}</span>` : ''}
-              ${missingEv ? '<span class="text-amber-600 font-bold" title="Falta evidencia (CP-06)">❗</span>' : ''}
+              ${evCount > 0 ? `<span class="inline-flex items-center gap-0.5 text-slate-600" title="${evCount} evidencia(s)">${icon('paperclip', 'w-3.5 h-3.5')}${evCount}</span>` : ''}
+              ${hallCount > 0 ? `<span class="inline-flex items-center gap-0.5 text-[#D64545] font-bold" title="${hallCount} hallazgo(s)">${icon('alertTriangle', 'w-3.5 h-3.5')}${hallCount}</span>` : ''}
+              ${missingEv ? `<span class="inline-flex items-center text-amber-600 font-bold" title="Falta evidencia (CP-06)">${icon('alertCircle', 'w-3.5 h-3.5')}</span>` : ''}
             </div>
           </div>
           <div class="text-xs font-semibold text-slate-800 line-clamp-2 mb-2">${escapeHtml(
@@ -171,10 +172,10 @@ function renderDetailPanel() {
     (ev.estado === 'IMPLEMENTADO' || ev.estado === 'PARCIAL') && evs.length === 0;
 
   const states = [
-    { id: 'IMPLEMENTADO', label: 'Implementado', icon: '✓', desc: 'Evidencia suficiente' },
-    { id: 'PARCIAL', label: 'Parcial', icon: '◐', desc: 'Cumple con brechas' },
-    { id: 'NO_IMPLEMENTADO', label: 'No implementado', icon: '✕', desc: 'Sin implementación' },
-    { id: 'NO_APLICABLE', label: 'No aplicable', icon: '—', desc: 'Exige justificación' },
+    { id: 'IMPLEMENTADO', label: 'Implementado', icon: icon('check', 'w-4 h-4'), desc: 'Evidencia suficiente' },
+    { id: 'PARCIAL', label: 'Parcial', icon: icon('circleHalf', 'w-4 h-4'), desc: 'Cumple con brechas' },
+    { id: 'NO_IMPLEMENTADO', label: 'No implementado', icon: icon('x', 'w-4 h-4'), desc: 'Sin implementación' },
+    { id: 'NO_APLICABLE', label: 'No aplicable', icon: icon('minus', 'w-4 h-4'), desc: 'Exige justificación' },
   ];
 
   const stateCardsHtml = states
@@ -313,8 +314,9 @@ function renderDetailPanel() {
       <div id="justificacion-na-box" class="${
         selectedStateDraft === 'NO_APLICABLE' ? '' : 'hidden'
       } p-4 rounded-xl bg-slate-100 border border-slate-300 space-y-2">
-        <div class="text-xs font-bold text-slate-700">
-          ⚠ Nota: Los controles marcados como <span class="underline">No aplicable</span> se excluyen automáticamente del denominador de cumplimiento (RF07).
+        <div class="text-xs font-bold text-slate-700 flex items-start gap-1.5">
+          ${icon('alertTriangle', 'w-4 h-4 text-amber-600 shrink-0 mt-0.5')}
+          <span>Nota: Los controles marcados como <span class="underline">No aplicable</span> se excluyen automáticamente del denominador de cumplimiento (RF07).</span>
         </div>
         <label for="justificacion_na" class="block text-sm font-bold text-slate-800">
           Justificación Formal de No Aplicabilidad <span class="text-[#D64545]">*</span>

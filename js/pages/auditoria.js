@@ -6,6 +6,7 @@ import { api } from '../api.js';
 import { setActiveAuditId } from '../auth.js';
 import { OFFICIAL_REFERENTES } from '../config.js';
 import { toInputDate } from '../format.js';
+import { icon } from '../icons.js';
 import { initLayout, populateAuditSelector, updateAuditStatusBadge } from '../layout.js';
 import { confirmModal, escapeHtml, renderAuditStateBadge, showToast } from '../ui.js';
 import {
@@ -157,28 +158,22 @@ async function renderLifecyclePanel(audit) {
     const okHall = (verif.total_hallazgos || 0) >= 3;
     const okRec = (verif.hallazgos_sin_recomendacion || []).length === 0;
 
+    const ruleRow = (ok, label, val) => `
+      <div class="flex items-center justify-between gap-2">
+        <span class="inline-flex items-center gap-1.5 ${ok ? 'text-[#2E9E5B]' : 'text-[#D64545]'} font-medium">
+          ${icon(ok ? 'check' : 'x', 'w-3.5 h-3.5')}
+          <span class="text-slate-700">${label}</span>
+        </span>
+        <span class="font-bold">${val}</span>
+      </div>`;
+
     checklistEl.innerHTML = `
       <div class="font-bold text-[#003366] mb-1">Verificación de Reglas de Negocio</div>
-      <div class="flex items-center justify-between">
-        <span>${okRange ? '✓' : '✕'} Selección 10–15 controles (RN02)</span>
-        <span class="font-bold">${verif.total_seleccionados}</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span>${okPend ? '✓' : '✕'} Sin controles pendientes</span>
-        <span class="font-bold">${(verif.pendientes || []).length} pend.</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span>${okEv ? '✓' : '✕'} Evidencias Impl./Parc. (RN04)</span>
-        <span class="font-bold">${(verif.sin_evidencia || []).length} falt.</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span>${okHall ? '✓' : '✕'} Mínimo 3 hallazgos (RN06)</span>
-        <span class="font-bold">${verif.total_hallazgos}</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span>${okRec ? '✓' : '✕'} Todos con recomendación</span>
-        <span class="font-bold">${(verif.hallazgos_sin_recomendacion || []).length} sin rec.</span>
-      </div>
+      ${ruleRow(okRange, 'Selección 10–15 controles (RN02)', verif.total_seleccionados)}
+      ${ruleRow(okPend, 'Sin controles pendientes', `${(verif.pendientes || []).length} pend.`)}
+      ${ruleRow(okEv, 'Evidencias Impl./Parc. (RN04)', `${(verif.sin_evidencia || []).length} falt.`)}
+      ${ruleRow(okHall, 'Mínimo 3 hallazgos (RN06)', verif.total_hallazgos)}
+      ${ruleRow(okRec, 'Todos con recomendación', `${(verif.hallazgos_sin_recomendacion || []).length} sin rec.`)}
     `;
   }
 
@@ -188,30 +183,35 @@ async function renderLifecyclePanel(audit) {
   if (estado === 'BORRADOR') {
     buttons.push({
       target: 'EN_EJECUCION',
-      label: '▶ Pasar a EN EJECUCIÓN',
+      label: 'Pasar a EN EJECUCIÓN',
+      iconName: 'play',
       cls: 'btn-primary',
     });
   } else if (estado === 'EN_EJECUCION') {
     buttons.push({
       target: 'EN_REVISION',
-      label: '◉ Enviar a EN REVISIÓN',
+      label: 'Enviar a EN REVISIÓN',
+      iconName: 'eye',
       cls: 'btn-primary',
     });
   } else if (estado === 'EN_REVISION') {
     buttons.push({
       target: 'EN_EJECUCION',
-      label: '↺ Devolver a EN EJECUCIÓN',
+      label: 'Devolver a EN EJECUCIÓN',
+      iconName: 'rotateCcw',
       cls: 'btn-outline',
     });
     buttons.push({
       target: 'CERRADA',
-      label: '🔒 Cerrar Auditoría (Inmutable)',
+      label: 'Cerrar Auditoría (Inmutable)',
+      iconName: 'lock',
       cls: 'btn-success',
     });
   } else if (estado === 'CERRADA') {
     actionsEl.innerHTML = `
-      <div class="p-3 rounded-lg bg-[#eaf6ef] border border-[#2E9E5B] text-xs text-green-900 font-semibold text-center">
-        ✓ Auditoría cerrada definitivamente (CP-13).
+      <div class="p-3 rounded-lg bg-[#eaf6ef] border border-[#2E9E5B] text-xs text-green-900 font-semibold flex items-center justify-center gap-1.5">
+        ${icon('checkCircle', 'w-4 h-4')}
+        <span>Auditoría cerrada definitivamente (CP-13).</span>
       </div>
       <a href="informe.html" class="btn btn-primary w-full text-xs">Ver Informe Consolidado</a>
     `;
@@ -221,9 +221,10 @@ async function renderLifecyclePanel(audit) {
   actionsEl.innerHTML = buttons
     .map(
       (b) =>
-        `<button type="button" data-next-state="${escapeHtml(b.target)}" class="btn ${b.cls} w-full text-xs">${escapeHtml(
-          b.label
-        )}</button>`
+        `<button type="button" data-next-state="${escapeHtml(b.target)}" class="btn ${b.cls} w-full text-xs">${icon(
+          b.iconName,
+          'w-3.5 h-3.5'
+        )}<span>${escapeHtml(b.label)}</span></button>`
     )
     .join('');
 
