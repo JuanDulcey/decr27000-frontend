@@ -143,7 +143,7 @@ Todas las páginas internas (`dashboard.html`, `auditoria.html`, `catalogo.html`
   - `fecha_inicio *` (Date) y `fecha_fin *` (Date). **Validación `CP-02`**: Si `fecha_fin` está vacía o es anterior a `fecha_inicio`, muestra error en línea junto al campo `fecha_fin` y bloquea el envío sin borrar lo digitado.
   - `objetivo *` (Textarea).
   - `alcance *` (Textarea).
-  - `referentes *` (Input prellenado con `ISO 19011:2018; ISO/IEC 27001:2022; ISO/IEC 27002:2022`).
+  - `referentes *` (Input prellenado con `ISO 19011:2026; ISO/IEC 27001:2022; ISO/IEC 27002:2022`). *ISO 19011:2026 reemplazó a ISO 19011:2018 en mayo de 2026; ISO/IEC 27001 y 27002 siguen en su edición 2022 (no hay edición 2026).*
 - **Panel de Ciclo de Vida de la Auditoría (`BORRADOR` $\rightarrow$ `EN_EJECUCION` $\rightarrow$ `EN_REVISION` $\rightarrow$ `CERRADA`)**:
   - Permite cambiar el estado de la auditoría invocando `PATCH /api/auditorias/{id}/estado` y mostrando claramente las reglas de negocio verificadas (`CP-03`, `CP-06`, `CP-08`, `CP-13`).
   - Si la auditoría está `CERRADA`, todos los inputs aparecen deshabilitados con un aviso claro de inmutabilidad (`CP-13`).
@@ -245,7 +245,7 @@ Es la pantalla central del sistema. Utiliza un diseño **Maestro-Detalle** (2 co
   - Botón **"Generar / Guardar Nueva Versión de Informe en BD"** (`POST /api/auditorias/{id}/informes`).
   - Botón **"Exportar / Descargar PDF Oficial"** (ejecuta `html2pdf()` o `window.print()` con hoja de estilo `@media print` optimizada tamaño Carta/A4).
 - **Vista Previa del Documento de Informe de Auditoría (Las 8 Secciones Oficiales de `RF08`)**:
-  1. **Sección 1 — Datos Generales de la Auditoría**: Organización, objetivo, alcance, periodo, auditor líder, referentes normativos (`ISO 19011:2018`, `ISO/IEC 27001:2022`, `ISO/IEC 27002:2022`), versión del informe y estado.
+  1. **Sección 1 — Datos Generales de la Auditoría**: Organización, objetivo, alcance, periodo, auditor líder, referentes normativos (`ISO 19011:2026`, `ISO/IEC 27001:2022`, `ISO/IEC 27002:2022`), versión del informe y estado.
   2. **Sección 2 — Alcance y Criterios Evaluados**: Tabla de los controles seleccionados con su código ISO, categoría, nombre y criterio.
   3. **Sección 3 — Resultados e Indicadores de Cumplimiento (`RF07` / `CP-09`)**:
      - Tabla de conteos por estado (`Implementados: 4`, `Parciales: 5`, `No implementados: 3`, `No aplicables: 1 [Excluidos del denominador]`, `Total Aplicables: 12`).
@@ -265,7 +265,7 @@ Es la pantalla central del sistema. Utiliza un diseño **Maestro-Detalle** (2 co
 
 ## 5. Contrato de API Consumido por el Frontend (`js/api.js`)
 
-El módulo `frontend/js/api.js` debe exponer métodos limpios que consuman exactamente los mismos endpoints definidos en `context/BACKEND_SPEC.md`:
+El módulo `js/api.js` debe exponer métodos limpios que consuman exactamente los mismos endpoints definidos en `BACKEND_SPEC.md` del repositorio `decr27000-backend`:
 
 | Método JS en `api.js` | Método HTTP y Ruta en Backend | Cuerpo (JSON) / Parámetros | Pantalla que lo consume |
 | :--- | :--- | :--- | :--- |
@@ -297,9 +297,9 @@ El módulo `frontend/js/api.js` debe exponer métodos limpios que consuman exact
 
 ---
 
-## 6. Configuración de Despliegue en Vercel (`frontend/vercel.json`)
+## 6. Configuración de Despliegue en Vercel (`vercel.json`)
 
-Incluir el archivo `frontend/vercel.json` para que Vercel sirva limpiamente las múltiples páginas HTML:
+Incluir el archivo `vercel.json` en la raíz del repositorio para que Vercel sirva limpiamente las múltiples páginas HTML:
 
 ```json
 {
@@ -309,7 +309,7 @@ Incluir el archivo `frontend/vercel.json` para que Vercel sirva limpiamente las 
 }
 ```
 
-### Resolución Inteligente de `API_BASE_URL` en `frontend/js/config.js`
+### Resolución Inteligente de `API_BASE_URL` en `js/config.js`
 Para que el proyecto funcione tanto en desarrollo local como una vez desplegado en Vercel sin romper enlaces:
 ```javascript
 const DEFAULT_API_URL =
@@ -321,3 +321,36 @@ export const getApiBaseUrl = () => localStorage.getItem('auditsys_api_url') || D
 export const setApiBaseUrl = (url) => localStorage.setItem('auditsys_api_url', url.replace(/\/+$/, ''));
 ```
 De esta manera, en local apunta automáticamente a `http://localhost:4000/api`, y en Vercel usa la URL de Render (además de permitir cambiarla desde el panel de conexión en `login.html` en cualquier momento).
+
+---
+
+## 7. Complementos tomados de los documentos académicos (`/documents`)
+
+### 7.1. Referentes normativos que muestra la interfaz
+- Cadena oficial en formularios, informe y pie de página: **`ISO 19011:2026; ISO/IEC 27001:2022; ISO/IEC 27002:2022`**.
+- Los documentos del curso citan **ISO 19011:2018**, retirada al publicarse **ISO 19011:2026** (4.ª edición, mayo de 2026). Los 7 principios de auditoría no cambian; la nueva edición trata los métodos de auditoría presencial, remoto e híbrido como opciones equivalentes.
+- **ISO/IEC 27001:2022** (con la Enmienda 1:2024) e **ISO/IEC 27002:2022** siguen vigentes: no existe edición 2026 de ninguna de las dos. El catálogo de 93 controles (37/8/14/34) es el correcto.
+- El sufijo "(20262)" del archivo `CONTROLES APLICABLES ISO 27002 2022 (20262).xlsx` corresponde al periodo académico 2026-2, no a una edición de la norma.
+
+### 7.2. Texto de resultados del informe (Sección 3, generado desde la BD)
+El párrafo de resumen debe construirse con los datos reales y seguir el modelo del documento de ejemplo:
+> *"De los 12 controles aplicables evaluados, 4 (33,3 %) están implementados, 5 parcialmente y 3 no implementados. Se documentaron cuatro hallazgos, dos de severidad alta, relacionados con la gestión de vulnerabilidades y de incidentes. El indicador es descriptivo y no constituye certificación."*
+
+Usar coma decimal (`33,3 %`) en el informe y en el dashboard (`Intl.NumberFormat('es-CO', { minimumFractionDigits: 1, maximumFractionDigits: 1 })`).
+
+### 7.3. Guion de demostración para la sustentación (casos de prueba por pantalla)
+
+| Paso | Pantalla | Qué demostrar | Casos de prueba |
+| :--- | :--- | :--- | :--- |
+| 0 | `dashboard.html` | "Restaurar Datos Demo (Empresa ABC)" para partir de un estado limpio. | — |
+| 1 | `auditoria.html?mode=new` | Crear auditoría válida y luego intentar guardar con la fecha de cierre vacía. | CP-01, CP-02 |
+| 2 | `catalogo.html` | Seleccionar 9 y 16 controles (bloqueo), luego 13. Como auditor, intentar editar un control (`403`). | CP-03, CP-13 |
+| 3 | `evaluacion.html` | `PARCIAL` sin observación (rechazo); 8.31 `NO_APLICABLE` sin justificación (rechazo); 5.1 `IMPLEMENTADO` sin evidencia (alerta). | CP-04, CP-05, CP-06 |
+| 4 | `hallazgos.html` | Hallazgo sin causa (rechazo); intento de cierre con menos de 3 hallazgos o sin recomendación. | CP-07, CP-08 |
+| 5 | `informe.html` | Fórmulas 33,3 % y 54,2 %, evidencias marcadas como simuladas, generar versión y PDF. | CP-09, CP-10 |
+| 6 | `dashboard.html` | Las tarjetas coinciden con el informe. | CP-11 |
+| 7 | Cualquier pantalla a 360 px | Recargar el navegador (persistencia) y operar el flujo en móvil. | CP-12 |
+| 8 | `auditoria.html` (auditoría `CERRADA`) | Intentar editar una auditoría cerrada (`403`, inmutable). | CP-13 |
+
+### 7.4. Nombres de controles mostrados
+La UI muestra el `nombre` que devuelve `GET /api/controles`, sin textos fijos en el código. En la semilla se corrigieron errores de traducción del Excel docente para alinearlos con ISO/IEC 27002:2022 (por ejemplo: 5.31 *Requisitos legales, estatutarios, reglamentarios y contractuales*, 7.7 *Escritorio limpio y pantalla limpia*, 8.15 *Registro de eventos*). El frontend debe tomar el nombre siempre de la API.
