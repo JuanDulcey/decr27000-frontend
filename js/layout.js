@@ -238,6 +238,7 @@ function renderShell(user, activeStep) {
 
   appContainer.innerHTML = '';
   appContainer.appendChild(layoutWrapper);
+  appContainer.dataset.ready = 'true';
 }
 
 function bindSidebarEvents() {
