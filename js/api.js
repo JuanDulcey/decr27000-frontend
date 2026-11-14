@@ -90,17 +90,6 @@ export async function request(method, path, body = null, options = {}) {
       json = null;
     }
 
-    // Si el backend en Render aún tiene el placeholder index.js ("Ruta no encontrada" en 404)
-    // y el modo es "auto", usamos el motor local sincronizado con la semilla oficial
-    if (
-      res.status === 404 &&
-      mode !== 'remote-strict' &&
-      normalizedPath !== '/health' &&
-      (json?.error === 'Ruta no encontrada' || !json)
-    ) {
-      return executeLocal(method, normalizedPath, body);
-    }
-
     if (!res.ok || (json && json.ok === false)) {
       const errMsg =
         json?.error ||
@@ -125,12 +114,6 @@ export async function request(method, path, body = null, options = {}) {
 
     if (err instanceof ApiError) {
       throw err;
-    }
-
-    // Si falla la red (ej. servidor local apagado o sin internet) y estamos en modo "auto",
-    // activamos el motor de persistencia local para garantizar operatividad continua
-    if (mode !== 'remote-strict') {
-      return executeLocal(method, normalizedPath, body);
     }
 
     const netMsg =

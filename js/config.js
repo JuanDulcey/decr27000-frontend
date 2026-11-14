@@ -30,8 +30,10 @@ export const resetApiBaseUrl = () => {
 };
 
 export const getApiMode = () => {
-  if (typeof localStorage === 'undefined') return 'auto';
-  return localStorage.getItem('auditsys_api_mode') || 'auto';
+  if (typeof localStorage === 'undefined') return 'remote-strict';
+  const stored = localStorage.getItem('auditsys_api_mode');
+  if (stored === 'local' || stored === 'remote-strict') return stored;
+  return 'remote-strict';
 };
 
 export const setApiMode = (mode) => {

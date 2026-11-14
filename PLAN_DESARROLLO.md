@@ -190,10 +190,10 @@ Render gratuito ofrece **512 MB de RAM y 0,1 de CPU**, **suspende el servicio tr
 En ese modo el login acepta la clave fija `Audit2026*`, devuelve un token falso (`demo-jwt-token-…`) y guarda auditorías, evidencias y hallazgos en el navegador de cada persona.
 
 Tareas de integración (se van cerrando a medida que el backend Nest publica endpoints):
-- [ ] **F-INT.1** Cuando un endpoint exista en el backend, comprobarlo con el modo `remote-strict` (selector en `login.html`) para que no caiga al motor local.
-- [ ] **F-INT.2** Al terminar el I2, quitar la caída automática por errores de red (caso 3): un error de red debe mostrarse como error, no guardar datos en `localStorage` en silencio, porque si no, los datos de la auditoría se dividen entre Supabase y el navegador.
-- [ ] **F-INT.3** Antes de la sustentación, dejar `remote-strict` como modo por defecto y conservar el modo `local` solo como opción manual de respaldo (documentada) si Render o Supabase fallan.
-- [ ] **F-INT.4** Cambiar en `package.json` los scripts `npx serve` por `serve . -l 3000` (el paquete ya está en `devDependencies`), según la regla "solo pnpm".
+- [x] **F-INT.1** Cuando un endpoint exista en el backend, comprobarlo con el modo `remote-strict` (selector en `login.html`) para que no caiga al motor local.
+- [x] **F-INT.2** Al terminar el I2, quitar la caída automática por errores de red (caso 3): un error de red debe mostrarse como error, no guardar datos en `localStorage` en silencio, porque si no, los datos de la auditoría se dividen entre Supabase y el navegador.
+- [x] **F-INT.3** Antes de la sustentación, dejar `remote-strict` como modo por defecto y conservar el modo `local` solo como opción manual de respaldo (documentada) si Render o Supabase fallan.
+- [x] **F-INT.4** Cambiar en `package.json` los scripts `npx serve` por `serve . -l 3000` (el paquete ya está en `devDependencies`), según la regla "solo pnpm".
 
 ---
 

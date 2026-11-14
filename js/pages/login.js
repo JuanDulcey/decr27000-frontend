@@ -52,9 +52,9 @@ document.getElementById('btn-save-api-config')?.addEventListener('click', () => 
 
 document.getElementById('btn-reset-api-config')?.addEventListener('click', () => {
   resetApiBaseUrl();
-  setApiMode('auto');
+  setApiMode('remote-strict');
   apiInput.value = getApiBaseUrl();
-  apiModeSelect.value = 'auto';
+  apiModeSelect.value = 'remote-strict';
   showToast('Conexión restablecida al valor predeterminado.', 'info');
   checkBackendHealth();
 });
