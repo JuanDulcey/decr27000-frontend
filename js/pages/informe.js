@@ -8,7 +8,6 @@ import { formatDate, formatDateTime, formatPercent } from '../format.js';
 import { initLayout } from '../layout.js';
 import {
   escapeHtml,
-  renderAuditStateBadge,
   renderCategoryBadge,
   renderControlStateChip,
   renderSeverityBadge,
@@ -157,6 +156,25 @@ function renderReportDocument(data) {
       ind.aplicables || 0
     }) × 100 = ${formatPercent(ind.indice_ponderado_pct || 0)}`;
 
+  const sealConfig =
+    aud.estado === 'CERRADA'
+      ? {
+          label: 'INFORME DEFINITIVO CERRADO',
+          sublabel: 'Validez Oficial · Registro Inmutable',
+          cls: 'border-[#1F8A4D] bg-[#e9f6ee] text-[#14532d]',
+        }
+      : aud.estado === 'EN_REVISION'
+        ? {
+            label: 'EN REVISIÓN TÉCNICA',
+            sublabel: 'Documento Preliminar Sujeto a Aprobación',
+            cls: 'border-[#D9822B] bg-[#fdf3e7] text-[#7c2d12]',
+          }
+        : {
+            label: 'DOCUMENTO EN BORRADOR',
+            sublabel: 'Auditoría en Ejecución · No Definitivo',
+            cls: 'border-slate-400 bg-slate-100 text-slate-700',
+          };
+
   container.innerHTML = `
     <!-- Portada / Cabecera Institucional del Informe -->
     <header class="border-b-4 border-[#003366] pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -171,8 +189,11 @@ function renderReportDocument(data) {
           Referentes: <strong>${escapeHtml(aud.referentes || OFFICIAL_REFERENTES)}</strong>
         </p>
       </div>
-      <div class="text-left sm:text-right space-y-1 text-xs">
-        <div>${renderAuditStateBadge(aud.estado)}</div>
+      <div class="text-left sm:text-right space-y-1.5 text-xs">
+        <div class="inline-block border-2 ${sealConfig.cls} px-3 py-1.5 rounded-md text-center" style="-webkit-print-color-adjust: exact; print-color-adjust: exact;">
+          <div class="font-extrabold tracking-wider text-[11px] uppercase">${sealConfig.label}</div>
+          <div class="text-[10px] font-medium opacity-85">${sealConfig.sublabel}</div>
+        </div>
         <div class="text-slate-600 font-semibold">
           Versión: <span class="text-[#003366]">v${escapeHtml(data.version_actual || 1)}</span>
         </div>

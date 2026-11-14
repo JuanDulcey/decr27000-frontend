@@ -7,8 +7,10 @@ import { formatDate } from '../format.js';
 import { icon } from '../icons.js';
 import { initLayout } from '../layout.js';
 import {
+  closeModal,
   confirmModal,
   escapeHtml,
+  openModal,
   renderCategoryBadge,
   renderControlStateChip,
   renderSeverityBadge,
@@ -76,6 +78,18 @@ async function loadEvaluaciones() {
     renderMasterList();
     renderDetailPanel();
   } catch (err) {
+    const panel = document.getElementById('control-detail-panel');
+    if (panel) {
+      panel.innerHTML = `
+        <div class="p-6 text-center space-y-3">
+          <p class="text-sm font-semibold text-[#7f1d1d]">No se pudieron cargar las evaluaciones: ${escapeHtml(err.message)}</p>
+          <button type="button" id="btn-retry-evals" class="btn btn-outline text-xs">
+            ${icon('rotateCcw', 'w-3.5 h-3.5')} Reintentar
+          </button>
+        </div>
+      `;
+      document.getElementById('btn-retry-evals')?.addEventListener('click', loadEvaluaciones);
+    }
     showToast(`Error al cargar evaluaciones: ${err.message}`, 'error');
   }
 }
@@ -333,11 +347,16 @@ function renderDetailPanel() {
         <p id="error-justificacion_na" class="field-error hidden"></p>
       </div>
 
-      <div class="flex justify-end">
-        <button type="submit" id="btn-save-eval" class="btn btn-primary" ${
+      <div class="flex flex-wrap justify-end gap-2">
+        <button type="submit" id="btn-save-eval" class="btn btn-outline" ${
           isClosedAudit ? 'disabled' : ''
         }>
-          Guardar Evaluación del Control
+          Guardar Evaluación
+        </button>
+        <button type="button" id="btn-save-next-eval" class="btn btn-primary" ${
+          isClosedAudit ? 'disabled' : ''
+        }>
+          Guardar y siguiente pendiente →
         </button>
       </div>
     </form>
@@ -447,8 +466,7 @@ function bindDetailPanelEvents(ev) {
     hasUnsavedChanges = true;
   });
 
-  evalForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  const handleSaveEvaluation = async (advanceToNext = false) => {
     clearAllFieldErrors(evalForm);
     const payload = {
       estado: selectedStateDraft,
@@ -462,18 +480,45 @@ function bindDetailPanelEvents(ev) {
       return;
     }
 
+    const btnSave = document.getElementById('btn-save-eval');
+    const btnNext = document.getElementById('btn-save-next-eval');
     try {
-      const btn = document.getElementById('btn-save-eval');
-      btn.disabled = true;
+      if (btnSave) btnSave.disabled = true;
+      if (btnNext) btnNext.disabled = true;
       const res = await api.updateEvaluacion(ev.id_evaluacion, payload);
       hasUnsavedChanges = false;
       showToast(res?.message || 'Evaluación guardada.', 'success');
+
+      if (advanceToNext) {
+        const currentIdx = evaluaciones.findIndex((item) => item.id_evaluacion === ev.id_evaluacion);
+        const nextPending =
+          evaluaciones.find(
+            (item, idx) => idx > currentIdx && item.estado === 'PENDIENTE'
+          ) ||
+          evaluaciones.find((item) => item.id_evaluacion !== ev.id_evaluacion && item.estado === 'PENDIENTE');
+
+        if (nextPending) {
+          activeEvalId = nextPending.id_evaluacion;
+        } else {
+          showToast('Todos los controles seleccionados han sido evaluados.', 'info');
+        }
+      }
       await loadEvaluaciones();
     } catch (err) {
       if (err.field) setFieldError(err.field, err.message);
       showToast(err.message, 'error', 7000);
-      document.getElementById('btn-save-eval').disabled = isClosedAudit;
+      if (btnSave) btnSave.disabled = isClosedAudit;
+      if (btnNext) btnNext.disabled = isClosedAudit;
     }
+  };
+
+  evalForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await handleSaveEvaluation(false);
+  });
+
+  document.getElementById('btn-save-next-eval')?.addEventListener('click', async () => {
+    await handleSaveEvaluation(true);
   });
 
   const evForm = document.getElementById('evidencia-form');
@@ -537,10 +582,7 @@ function bindQuickHallazgoModal() {
   if (!modal || !form) return;
 
   attachLiveValidationClear(form);
-  const close = () => {
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-  };
+  const close = () => closeModal(modal);
   document.getElementById('qh-close')?.addEventListener('click', close);
   document.getElementById('qh-cancel')?.addEventListener('click', close);
 
@@ -609,8 +651,7 @@ function openQuickHallazgoModal(ev) {
   document.getElementById('qh-eval-id').value = String(ev.id_evaluacion);
   document.getElementById('qh-modal-title').textContent = `Registrar Hallazgo — Control ${ev.codigo_iso}`;
   document.getElementById('qh-criterio').value = `ISO/IEC 27002:2022, control ${ev.codigo_iso}: ${ev.criterio}`;
-  modal.classList.remove('hidden');
-  modal.classList.add('flex');
+  openModal(modal, '#qh-condicion');
 }
 
 function bindKeyboardNavigation() {

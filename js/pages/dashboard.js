@@ -23,18 +23,101 @@ export async function bootstrap() {
 }
 
 async function loadDashboard(idAuditoria) {
+  const errBanner = document.getElementById('dashboard-error-banner');
+  errBanner?.classList.add('hidden');
+
+  const targetId = idAuditoria || getActiveAuditId();
   try {
-    const res = await api.getDashboard(idAuditoria || getActiveAuditId());
+    const [res, evalRes] = await Promise.all([
+      api.getDashboard(targetId),
+      api.getEvaluaciones(targetId).catch(() => null),
+    ]);
     const data = res?.data;
     if (!data) return;
 
     renderBanner(data.auditoria_activa, data.indicadores);
     renderKpis(data.indicadores);
+    renderDomainBreakdown(Array.isArray(evalRes?.data) ? evalRes.data : []);
     renderCharts(data.indicadores, data.hallazgos_por_severidad);
     renderAuditoriasTable(data.auditorias_recientes || [], data.auditoria_activa?.id_auditoria);
   } catch (err) {
+    if (errBanner) {
+      errBanner.innerHTML = `
+        <div class="p-4 rounded-xl bg-[#fbecec] border border-[#D64545] text-[#7f1d1d] flex flex-col sm:flex-row sm:items-center justify-between gap-3" role="alert">
+          <div class="text-xs sm:text-sm font-semibold">
+            No se pudo cargar el resumen ejecutivo: ${escapeHtml(err.message)}
+          </div>
+          <button type="button" id="btn-retry-dashboard" class="btn btn-outline text-xs shrink-0">
+            ${icon('rotateCcw', 'w-3.5 h-3.5')} Reintentar
+          </button>
+        </div>
+      `;
+      errBanner.classList.remove('hidden');
+      document.getElementById('btn-retry-dashboard')?.addEventListener('click', () => {
+        loadDashboard(targetId);
+      });
+    }
     showToast(`Error al cargar el dashboard: ${err.message}`, 'error');
   }
+}
+
+function renderDomainBreakdown(evaluaciones) {
+  const grid = document.getElementById('domain-breakdown-grid');
+  if (!grid) return;
+
+  if (!evaluaciones || evaluaciones.length === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full p-5 rounded-xl bg-slate-50 border border-dashed border-slate-300 text-center space-y-2">
+        <p class="text-sm font-semibold text-slate-700">Esta auditoría aún no tiene controles seleccionados.</p>
+        <p class="text-xs text-slate-500">Seleccione entre 10 y 15 controles del catálogo ISO/IEC 27002:2022 para visualizar el avance por dominio.</p>
+        <div class="pt-1">
+          <a href="catalogo.html" class="btn btn-primary text-xs">Ir al Catálogo ISO 27002 →</a>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const domains = [
+    { key: 'ORGANIZACIONAL', label: 'Organizacional (5.x)', bar: 'bg-[#003366]' },
+    { key: 'PERSONAS', label: 'Personas (6.x)', bar: 'bg-[#009aa3]' },
+    { key: 'FISICO', label: 'Físico (7.x)', bar: 'bg-[#2E9E5B]' },
+    { key: 'TECNOLOGICO', label: 'Tecnológico (8.x)', bar: 'bg-[#4f46e5]' },
+  ];
+
+  grid.innerHTML = domains
+    .map((d) => {
+      const items = evaluaciones.filter((e) => e.categoria === d.key);
+      const aplicables = items.filter((e) => e.estado !== 'NO_APLICABLE');
+      const impl = aplicables.filter((e) => e.estado === 'IMPLEMENTADO').length;
+      const parc = aplicables.filter((e) => e.estado === 'PARCIAL').length;
+      const pct = aplicables.length > 0 ? ((impl + 0.5 * parc) / aplicables.length) * 100 : 0;
+
+      return `
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold text-slate-700">${escapeHtml(d.label)}</span>
+            <span class="text-sm font-extrabold text-[#003366] tabular-nums">${
+              items.length === 0 ? '—' : formatPercent(pct)
+            }</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+            <div class="h-full ${d.bar} rounded-full transition-all duration-300" style="width: ${Math.min(
+              100,
+              Math.round(pct)
+            )}%"></div>
+          </div>
+          <div class="text-[11px] text-slate-500">
+            ${
+              items.length === 0
+                ? 'Sin controles en alcance'
+                : `${items.length} sel. · ${impl} impl. · ${parc} parc.`
+            }
+          </div>
+        </div>
+      `;
+    })
+    .join('');
 }
 
 function renderBanner(audit, ind) {
@@ -242,7 +325,13 @@ function renderAuditoriasTable(auditorias, activeId) {
   if (!container) return;
 
   if (!auditorias || auditorias.length === 0) {
-    container.innerHTML = `<div class="p-6 text-center text-sm text-slate-500">No existen auditorías registradas.</div>`;
+    container.innerHTML = `
+      <div class="p-8 text-center space-y-3">
+        <p class="text-sm font-semibold text-slate-700">No existen auditorías registradas todavía.</p>
+        <p class="text-xs text-slate-500">Cree su primera auditoría para configurar el alcance y seleccionar controles ISO/IEC 27002:2022.</p>
+        <a href="auditoria.html?mode=new" class="btn btn-primary text-xs">+ Crear primera auditoría</a>
+      </div>
+    `;
     return;
   }
 

@@ -179,6 +179,7 @@ export function confirmModal({
     const existing = document.getElementById('modal-backdrop');
     if (existing) existing.remove();
 
+    const previousFocus = document.activeElement;
     const backdrop = document.createElement('div');
     backdrop.id = 'modal-backdrop';
     backdrop.className =
@@ -225,11 +226,23 @@ export function confirmModal({
 
     document.body.appendChild(backdrop);
 
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        cleanup(false);
+      }
+    };
+
     const cleanup = (result) => {
+      document.removeEventListener('keydown', onKeyDown);
       backdrop.remove();
+      if (previousFocus && typeof previousFocus.focus === 'function' && document.contains(previousFocus)) {
+        previousFocus.focus();
+      }
       resolve(result);
     };
 
+    document.addEventListener('keydown', onKeyDown);
     backdrop.querySelector('#modal-cancel-btn').addEventListener('click', () => cleanup(false));
     backdrop.querySelector('#modal-close-x').addEventListener('click', () => cleanup(false));
     backdrop.querySelector('#modal-confirm-btn').addEventListener('click', () => {
@@ -244,7 +257,59 @@ export function confirmModal({
       }
       cleanup(true);
     });
+
+    const initialFocus = requirePhrase
+      ? backdrop.querySelector('#confirm-phrase-input')
+      : backdrop.querySelector('#modal-confirm-btn');
+    initialFocus?.focus();
   });
+}
+
+const modalLastFocus = new WeakMap();
+
+/**
+ * Abre un modal HTML existente con soporte de tecla Escape y restauración de foco.
+ */
+export function openModal(modal, focusSelector = null) {
+  if (!modal) return;
+  modalLastFocus.set(modal, document.activeElement);
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+
+  if (!modal.dataset.a11yBound) {
+    modal.dataset.a11yBound = '1';
+    const onKeyDown = (e) => {
+      if (!document.body.contains(modal)) {
+        document.removeEventListener('keydown', onKeyDown);
+        return;
+      }
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        e.preventDefault();
+        closeModal(modal);
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+  }
+
+  requestAnimationFrame(() => {
+    const target = focusSelector
+      ? modal.querySelector(focusSelector)
+      : modal.querySelector('input:not([type="hidden"]), textarea, select, button:not([disabled])');
+    target?.focus?.();
+  });
+}
+
+/**
+ * Cierra un modal HTML y restaura el foco al elemento previo.
+ */
+export function closeModal(modal) {
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+  const prev = modalLastFocus.get(modal);
+  if (prev && typeof prev.focus === 'function' && document.contains(prev)) {
+    prev.focus();
+  }
 }
 
 /**

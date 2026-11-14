@@ -27,6 +27,9 @@
         </a>
       </div>
 
+      <!-- Alerta de Error de Red / Reintento -->
+      <div id="dashboard-error-banner" class="hidden"></div>
+
       <!-- Banner de Resumen de Auditoría Activa -->
       <section id="active-audit-banner" class="card p-5 bg-gradient-to-r from-[#003366] to-[#00468c] text-white border-0 shadow-sm">
         <div class="skeleton h-6 w-2/3 bg-white/20 mb-2"></div>
@@ -41,7 +44,7 @@
             <span class="w-2 h-2 rounded-full bg-[#003366]"></span>
           </div>
           <p id="kpi-cumplimiento-base" class="text-3xl font-extrabold text-[#003366] mt-2 tabular-nums">0,0 %</p>
-          <p id="kpi-cumplimiento-sub" class="text-xs text-slate-500 mt-1.5">Cargando...</p>
+          <p id="kpi-cumplimiento-sub" class="text-xs text-slate-500 mt-1.5"><span class="skeleton inline-block h-3 w-28"></span></p>
         </article>
 
         <article class="card p-5">
@@ -50,7 +53,7 @@
             <span class="w-2 h-2 rounded-full bg-[#00C6D0]"></span>
           </div>
           <p id="kpi-indice-ponderado" class="text-3xl font-extrabold text-[#003366] mt-2 tabular-nums">0,0 %</p>
-          <p id="kpi-indice-sub" class="text-xs text-slate-500 mt-1.5">Cargando...</p>
+          <p id="kpi-indice-sub" class="text-xs text-slate-500 mt-1.5"><span class="skeleton inline-block h-3 w-28"></span></p>
         </article>
 
         <article class="card p-5">
@@ -59,7 +62,7 @@
             <span class="w-2 h-2 rounded-full bg-[#2E9E5B]"></span>
           </div>
           <p id="kpi-evaluados" class="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">0 / 0</p>
-          <p id="kpi-evaluados-sub" class="text-xs text-slate-500 mt-1.5">Cargando...</p>
+          <p id="kpi-evaluados-sub" class="text-xs text-slate-500 mt-1.5"><span class="skeleton inline-block h-3 w-24"></span></p>
         </article>
 
         <article class="card p-5">
@@ -68,8 +71,25 @@
             <span class="w-2 h-2 rounded-full bg-[#D64545]"></span>
           </div>
           <p id="kpi-hallazgos" class="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">0</p>
-          <p id="kpi-hallazgos-sub" class="text-xs text-slate-500 mt-1.5">Cargando...</p>
+          <p id="kpi-hallazgos-sub" class="text-xs text-slate-500 mt-1.5"><span class="skeleton inline-block h-3 w-24"></span></p>
         </article>
+      </section>
+
+      <!-- Cumplimiento por Dominio ISO/IEC 27002:2022 -->
+      <section id="domain-breakdown-section" class="card p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-bold text-[#003366]">Cumplimiento por Dominio ISO/IEC 27002:2022</h2>
+            <p class="text-xs text-slate-500">Desglose ponderado sobre los 4 dominios normativos de la muestra seleccionada.</p>
+          </div>
+          <a href="evaluacion.html" class="text-xs font-semibold text-[#003366] hover:underline">Evaluar controles →</a>
+        </div>
+        <div id="domain-breakdown-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="skeleton h-20 w-full"></div>
+          <div class="skeleton h-20 w-full"></div>
+          <div class="skeleton h-20 w-full"></div>
+          <div class="skeleton h-20 w-full"></div>
+        </div>
       </section>
 
       <!-- Nota metodológica -->

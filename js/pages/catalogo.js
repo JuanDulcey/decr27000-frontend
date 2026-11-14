@@ -6,7 +6,7 @@ import { api } from '../api.js';
 import { normalizeSearchText } from '../format.js';
 import { icon } from '../icons.js';
 import { initLayout, navigateTo } from '../layout.js';
-import { escapeHtml, renderCategoryBadge, showToast } from '../ui.js';
+import { closeModal, escapeHtml, openModal, renderCategoryBadge, showToast } from '../ui.js';
 
 let allControls = [];
 let selectedIds = new Set();
@@ -95,12 +95,9 @@ function bindEvents() {
   document.getElementById('btn-save-selection')?.addEventListener('click', saveSelection);
 
   const modal = document.getElementById('edit-control-modal');
-  const closeModal = () => {
-    modal?.classList.add('hidden');
-    modal?.classList.remove('flex');
-  };
-  document.getElementById('modal-ctrl-close')?.addEventListener('click', closeModal);
-  document.getElementById('modal-ctrl-cancel')?.addEventListener('click', closeModal);
+  const closeEditModal = () => closeModal(modal);
+  document.getElementById('modal-ctrl-close')?.addEventListener('click', closeEditModal);
+  document.getElementById('modal-ctrl-cancel')?.addEventListener('click', closeEditModal);
 
   document.getElementById('edit-control-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -299,8 +296,7 @@ function openEditModal(idCtrl) {
   document.getElementById('modal-ctrl-alert').classList.add('hidden');
 
   const modal = document.getElementById('edit-control-modal');
-  modal?.classList.remove('hidden');
-  modal?.classList.add('flex');
+  openModal(modal, '#edit-ctrl-nombre');
 }
 
 async function saveSelection() {

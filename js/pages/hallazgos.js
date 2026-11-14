@@ -6,8 +6,10 @@ import { api } from '../api.js';
 import { icon } from '../icons.js';
 import { initLayout, populateAuditSelector } from '../layout.js';
 import {
+  closeModal,
   confirmModal,
   escapeHtml,
+  openModal,
   renderControlStateChip,
   renderSeverityBadge,
   showToast,
@@ -69,6 +71,19 @@ async function refreshAll() {
     renderTrazabilidad();
   } catch (err) {
     showToast(`Error al cargar datos de hallazgos: ${err.message}`, 'error');
+    const listEl = document.getElementById('hallazgos-list');
+    if (listEl) {
+      listEl.innerHTML = `
+        <div class="card p-6 border-[#D64545] bg-[#fbecec]/50 text-center space-y-3">
+          <p class="text-sm font-bold text-[#7f1d1d]">No se pudieron cargar los hallazgos y la matriz de trazabilidad.</p>
+          <p class="text-xs text-[#991b1b]">${escapeHtml(err.message)}</p>
+          <button type="button" id="btn-retry-hallazgos" class="btn btn-primary text-xs">
+            ${icon('rotateCcw', 'w-3.5 h-3.5')} Reintentar conexión
+          </button>
+        </div>
+      `;
+      document.getElementById('btn-retry-hallazgos')?.addEventListener('click', refreshAll);
+    }
   }
 }
 
@@ -165,10 +180,7 @@ function bindFormsAndFilters() {
   const editHallModal = document.getElementById('edit-hall-modal');
   const editHallForm = document.getElementById('edit-hall-form');
   if (editHallForm) attachLiveValidationClear(editHallForm);
-  const closeEditHallModal = () => {
-    editHallModal?.classList.add('hidden');
-    editHallModal?.classList.remove('flex');
-  };
+  const closeEditHallModal = () => closeModal(editHallModal);
   document.getElementById('edit-hall-close')?.addEventListener('click', closeEditHallModal);
   document.getElementById('edit-hall-cancel')?.addEventListener('click', closeEditHallModal);
 
@@ -214,10 +226,7 @@ function bindFormsAndFilters() {
   // Modal Agregar Recomendación
   const recModal = document.getElementById('add-rec-modal');
   const recForm = document.getElementById('add-rec-form');
-  const closeRecModal = () => {
-    recModal?.classList.add('hidden');
-    recModal?.classList.remove('flex');
-  };
+  const closeRecModal = () => closeModal(recModal);
   document.getElementById('add-rec-close')?.addEventListener('click', closeRecModal);
   document.getElementById('add-rec-cancel')?.addEventListener('click', closeRecModal);
 
@@ -255,6 +264,58 @@ function bindFormsAndFilters() {
       renderTrazabilidad();
     });
   });
+
+  document.getElementById('btn-export-traz-csv')?.addEventListener('click', exportTrazabilidadCsv);
+}
+
+function exportTrazabilidadCsv() {
+  if (!trazabilidadRows || trazabilidadRows.length === 0) {
+    showToast('No hay filas de trazabilidad para exportar.', 'warning');
+    return;
+  }
+  const csvEscape = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
+  const headers = [
+    'Control ISO',
+    'Nombre del Control',
+    'Estado Evaluacion',
+    'Evidencia',
+    'Hallazgo',
+    'Severidad',
+    'Recomendacion',
+    'Prioridad',
+    'Plazo (dias)',
+    'Responsable',
+  ];
+  const lines = [
+    headers.map(csvEscape).join(','),
+    ...trazabilidadRows.map((r) =>
+      [
+        r.codigo_iso,
+        r.control_nombre,
+        r.estado,
+        r.codigo_evidencia || 'Sin evidencia',
+        r.hallazgo_codigo || 'Sin hallazgo',
+        r.severidad || '',
+        r.recomendacion_descripcion || '',
+        r.prioridad || '',
+        r.plazo_dias ?? '',
+        r.responsable || '',
+      ]
+        .map(csvEscape)
+        .join(',')
+    ),
+  ];
+
+  const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `trazabilidad-auditoria-${activeAuditId || 'sgsi'}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  showToast('Matriz de trazabilidad exportada a CSV.', 'success');
 }
 
 function renderClosurePanel() {
@@ -471,8 +532,7 @@ function renderHallazgosList() {
       document.getElementById('m-rec-plazo').value = '60';
       document.getElementById('m-rec-resp').value = 'Líder de TI / Seguridad';
       const modal = document.getElementById('add-rec-modal');
-      modal?.classList.remove('hidden');
-      modal?.classList.add('flex');
+      openModal(modal, '#m-rec-desc');
     });
   });
 
@@ -491,8 +551,7 @@ function renderHallazgosList() {
       document.getElementById('edit-hall-crit').value = h.criterio || '';
       document.getElementById('edit-hall-causa').value = h.causa || '';
       document.getElementById('edit-hall-efecto').value = h.efecto_riesgo || '';
-      modal?.classList.remove('hidden');
-      modal?.classList.add('flex');
+      openModal(modal, '#edit-hall-cond');
     });
   });
 
