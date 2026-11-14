@@ -279,12 +279,11 @@ function renderShell(user, activeStep) {
       <div class="p-4 overflow-y-auto">
         <div class="flex items-center justify-between pb-4 border-b border-white/15">
           <a href="dashboard.html" class="flex items-center gap-2.5 text-white no-underline">
-            <div class="w-9 h-9 rounded-lg bg-[#00C6D0] text-[#003366] font-extrabold flex items-center justify-center text-lg shadow-sm">
-              A
-            </div>
-            <div>
-              <div class="font-bold text-base leading-tight">AuditSys SGSI</div>
-              <div class="text-[11px] text-[#00C6D0] font-semibold tracking-wide">ISO/IEC 27002:2022</div>
+            <img src="logo.jpg" alt="DECR 27000"
+              class="h-10 w-auto rounded-lg object-contain bg-[#22252A] px-2 py-1 border border-white/15 shadow-sm" />
+            <div class="min-w-0">
+              <div class="font-bold text-sm leading-tight truncate">AuditSys SGSI</div>
+              <div class="text-[10px] text-[#10B981] font-semibold tracking-wide">ISO/IEC 27002:2022</div>
             </div>
           </a>
           <button type="button" id="sidebar-close-btn" class="md:hidden text-white/80 hover:text-white p-2 min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Cerrar menú">${icon('x', 'w-5 h-5')}</button>

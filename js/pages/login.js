@@ -29,7 +29,7 @@ if (urlParams.get('expired') === '1') {
 async function checkBackendHealth() {
   if (!healthPill) return;
   healthPill.textContent = 'Verificando servicio...';
-  healthPill.className = 'px-3 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600';
+  healthPill.className = 'px-3 py-1 rounded-full text-[11px] font-semibold bg-white/10 text-slate-200 border border-white/15';
 
   const slowTimer = setTimeout(() => {
     coldBanner?.classList.remove('hidden');
@@ -42,14 +42,14 @@ async function checkBackendHealth() {
     if (res && res.ok) {
       healthPill.textContent = 'Servicio En Línea';
       healthPill.className =
-        'px-3 py-1 rounded-full text-[11px] font-bold bg-[#eaf6ef] text-[#1e6f40] border border-[#2E9E5B]/30';
+        'px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-400/30';
     }
   } catch {
     clearTimeout(slowTimer);
     coldBanner?.classList.add('hidden');
     healthPill.textContent = 'Servicio No Disponible';
     healthPill.className =
-      'px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300';
+      'px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/15 text-amber-200 border border-amber-400/30';
   }
 }
 
