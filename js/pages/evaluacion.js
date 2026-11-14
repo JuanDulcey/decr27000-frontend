@@ -1,5 +1,5 @@
 /**
- * AuditSys Mini (DECR 27000) — Controlador de Evaluación y Evidencias (RF03, RF04, CP-04, CP-05, CP-06)
+ * AuditSys SGSI — Controlador de Evaluación y Evidencias
  */
 
 import { api } from '../api.js';
@@ -127,7 +127,7 @@ function renderMasterList() {
             <div class="flex items-center gap-1.5 text-xs">
               ${evCount > 0 ? `<span class="inline-flex items-center gap-0.5 text-slate-600" title="${evCount} evidencia(s)">${icon('paperclip', 'w-3.5 h-3.5')}${evCount}</span>` : ''}
               ${hallCount > 0 ? `<span class="inline-flex items-center gap-0.5 text-[#D64545] font-bold" title="${hallCount} hallazgo(s)">${icon('alertTriangle', 'w-3.5 h-3.5')}${hallCount}</span>` : ''}
-              ${missingEv ? `<span class="inline-flex items-center text-amber-600 font-bold" title="Falta evidencia (CP-06)">${icon('alertCircle', 'w-3.5 h-3.5')}</span>` : ''}
+              ${missingEv ? `<span class="inline-flex items-center text-amber-600 font-bold" title="Falta evidencia requerida">${icon('alertCircle', 'w-3.5 h-3.5')}</span>` : ''}
             </div>
           </div>
           <div class="text-xs font-semibold text-slate-800 line-clamp-2 mb-2">${escapeHtml(
@@ -216,8 +216,8 @@ function renderDetailPanel() {
                 <span class="text-sm font-bold text-slate-900">${escapeHtml(item.descripcion)}</span>
                 ${
                   item.es_simulada !== false
-                    ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#e0f9fa] text-[#003366] border border-[#00C6D0]">Evidencia Simulada (Académica)</span>'
-                    : ''
+                    ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#e0f9fa] text-[#003366] border border-[#00C6D0]">Referencial</span>'
+                    : '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eaf6ef] text-[#1e6f40] border border-[#2E9E5B]/30">Documental</span>'
                 }
               </div>
               <div class="text-xs text-slate-600">
@@ -322,7 +322,7 @@ function renderDetailPanel() {
       } p-4 rounded-xl bg-slate-100 border border-slate-300 space-y-2">
         <div class="text-xs font-bold text-slate-700 flex items-start gap-1.5">
           ${icon('alertTriangle', 'w-4 h-4 text-amber-600 shrink-0 mt-0.5')}
-          <span>Nota: Los controles marcados como <span class="underline">No aplicable</span> se excluyen automáticamente del denominador de cumplimiento (RF07).</span>
+          <span>Nota: Los controles marcados como <span class="underline">No aplicable</span> se excluyen automáticamente del cálculo de cumplimiento.</span>
         </div>
         <label for="justificacion_na" class="block text-sm font-bold text-slate-800">
           Justificación Formal de No Aplicabilidad <span class="text-[#D64545]">*</span>
@@ -351,7 +351,7 @@ function renderDetailPanel() {
       ${
         missingEvBanner
           ? `<div class="p-3.5 rounded-lg bg-amber-50 border-2 border-[#F2A900] text-amber-950 text-xs font-bold" role="alert">
-               Regla RN04 / CP-06: Los controles en estado <em>Implementado</em> o <em>Parcial</em> exigen registrar al menos una evidencia para poder avanzar a Revisión.
+               Los controles en estado <em>Implementado</em> o <em>Parcial</em> requieren al menos una evidencia registrada antes de enviar la auditoría a revisión.
              </div>`
           : ''
       }
@@ -391,7 +391,7 @@ function renderDetailPanel() {
                 <div class="flex items-end pb-2">
                   <label class="inline-flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
                     <input id="ev-simulada" type="checkbox" checked class="w-4 h-4 accent-[#003366]" />
-                    <span>Evidencia Simulada</span>
+                    <span>Evidencia referencial</span>
                   </label>
                 </div>
               </div>
@@ -564,7 +564,7 @@ function bindQuickHallazgoModal() {
       valid = false;
     }
     if (!causa) {
-      setFieldError('qh-causa', 'La causa raíz es obligatoria (CP-07).');
+      setFieldError('qh-causa', 'La causa raíz es obligatoria.');
       valid = false;
     }
     if (!efecto_riesgo) {

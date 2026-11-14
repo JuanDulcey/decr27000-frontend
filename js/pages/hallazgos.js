@@ -1,6 +1,5 @@
 /**
- * AuditSys Mini (DECR 27000) — Controlador de Hallazgos, Recomendaciones y Trazabilidad
- * (RF05, RF06, RNF05, CP-07, CP-08)
+ * AuditSys SGSI — Controlador de Hallazgos, Recomendaciones y Trazabilidad
  */
 
 import { api } from '../api.js';
@@ -290,7 +289,7 @@ function renderClosurePanel() {
     <span class="px-2.5 py-1 rounded-md ${
       sinEv.length === 0 ? 'bg-[#eaf6ef] text-[#14532d]' : 'bg-[#fbecec] text-[#7f1d1d]'
     }">
-      Controles sin evidencia (RN04): ${sinEv.length}
+      Controles sin evidencia: ${sinEv.length}
     </span>
   `;
 
@@ -317,7 +316,7 @@ function renderClosurePanel() {
         const ok = await confirmModal({
           title: 'Cerrar Auditoría Definitivamente',
           message:
-            '¿Confirma que desea cerrar la auditoría? Una vez cerrada será inmutable (CP-13).',
+            '¿Confirma que desea cerrar la auditoría? Una vez cerrada quedará en modo de solo lectura.',
           confirmText: 'Cerrar Auditoría',
           danger: true,
         });
@@ -365,7 +364,7 @@ function renderHallazgosList() {
         recs.length === 0
           ? `<div class="p-3 rounded-lg bg-[#fbecec] border border-[#D64545] text-[#7f1d1d] text-xs font-bold flex items-center gap-1.5">
                ${icon('alertTriangle', 'w-4 h-4 shrink-0')}
-               <span>Sin recomendación asociada (bloquea el cierre según RN06 / CP-08).</span>
+               <span>Sin recomendación asociada (requerida para cerrar la auditoría).</span>
              </div>`
           : recs
               .map(

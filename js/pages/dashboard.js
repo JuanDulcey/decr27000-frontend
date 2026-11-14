@@ -6,12 +6,11 @@ import { api } from '../api.js';
 import { getActiveAuditId, setActiveAuditId } from '../auth.js';
 import { formatDate, formatPercent } from '../format.js';
 import { icon } from '../icons.js';
-import { initLayout, populateAuditSelector } from '../layout.js';
-import { confirmModal, escapeHtml, renderAuditStateBadge, showToast } from '../ui.js';
+import { initLayout } from '../layout.js';
+import { escapeHtml, renderAuditStateBadge, showToast } from '../ui.js';
 
 let chartEstados = null;
 let chartSeveridad = null;
-let currentUser = null;
 
 export async function bootstrap() {
   const ctx = await initLayout({
@@ -20,44 +19,7 @@ export async function bootstrap() {
   });
   if (!ctx) return;
 
-  currentUser = ctx.user;
-  bindResetDemoButton();
   await loadDashboard(ctx.activeAuditId);
-}
-
-function bindResetDemoButton() {
-  const btn = document.getElementById('btn-reset-demo');
-  if (!btn) return;
-
-  btn.addEventListener('click', async () => {
-    const isAdminUser = currentUser?.rol === 'admin';
-    const confirmed = await confirmModal({
-      title: 'Restaurar Datos Demo (Empresa ABC)',
-      message: isAdminUser
-        ? 'Esta acción restablecerá la base de datos al estado limpio de sustentación: 93 controles ISO/IEC 27002:2022 y la auditoría completa de Empresa ABC.'
-        : 'Esta acción restablecerá la base de datos de demostración al estado inicial de Empresa ABC. (Nota: en producción con backend restringido requiere perfil Administrador).',
-      confirmText: 'Restaurar Datos Demo',
-      danger: true,
-      requirePhrase: 'RESTAURAR-EMPRESA-ABC',
-    });
-
-    if (!confirmed) return;
-
-    try {
-      btn.disabled = true;
-      const res = await api.resetDemoSeed('RESTAURAR-EMPRESA-ABC');
-      setActiveAuditId(1);
-      showToast(res?.message || 'Datos demo restaurados correctamente.', 'success');
-      const audRes = await api.getAuditorias();
-      const list = audRes?.data || [];
-      populateAuditSelector(list, list[0] || null);
-      await loadDashboard(1);
-    } catch (err) {
-      showToast(err.message, 'error');
-    } finally {
-      btn.disabled = false;
-    }
-  });
 }
 
 async function loadDashboard(idAuditoria) {

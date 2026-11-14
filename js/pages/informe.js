@@ -1,5 +1,5 @@
 /**
- * AuditSys Mini (DECR 27000) — Controlador de Informe Consolidado y PDF (RF07, RF08, CP-09, CP-10)
+ * AuditSys SGSI — Controlador de Informe Consolidado y Exportación PDF
  */
 
 import { api } from '../api.js';
@@ -162,7 +162,7 @@ function renderReportDocument(data) {
     <header class="border-b-4 border-[#003366] pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <div class="text-xs font-bold uppercase tracking-widest text-[#00C6D0] mb-1">
-          AuditSys Mini · Informe Consolidado de Auditoría SGSI
+          AuditSys SGSI · Informe Consolidado de Auditoría
         </div>
         <h2 class="text-2xl font-extrabold text-[#003366]">${escapeHtml(
           aud.organizacion || 'Organización Auditada'
@@ -244,10 +244,10 @@ function renderReportDocument(data) {
       </div>
     </section>
 
-    <!-- Sección 3 — Resultados e Indicadores de Cumplimiento (RF07 / CP-09) -->
+    <!-- Sección 3 — Resultados e Indicadores de Cumplimiento -->
     <section id="sec-3" class="space-y-4 print-break-inside-avoid">
       <h3 class="text-base font-extrabold text-[#003366] border-b border-slate-200 pb-1">
-        3. Resultados e Indicadores de Cumplimiento (RF07 / CP-09)
+        3. Resultados e Indicadores de Cumplimiento
       </h3>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -467,8 +467,8 @@ function renderReportDocument(data) {
                     <td class="px-3 py-2 font-bold text-[#003366]">
                       ${
                         ev.es_simulada !== false
-                          ? 'SIMULADA (Fines Académicos)'
-                          : 'Documental / Real'
+                          ? 'Referencial'
+                          : 'Documental'
                       }
                     </td>
                   </tr>

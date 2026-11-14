@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>3. Catálogo de Controles — AuditSys Mini (ISO/IEC 27002:2022)</title>
+  <title>Catálogo ISO 27002 — AuditSys SGSI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
@@ -11,40 +11,36 @@
   <div id="app-shell">
     <div id="page-content" class="space-y-5">
       <div>
-        <h1 class="text-2xl font-extrabold text-[#003366]">Catálogo ISO/IEC 27002:2022 y Selección (10–15)</h1>
+        <h1 class="text-2xl font-extrabold text-[#003366]">Catálogo ISO/IEC 27002:2022</h1>
         <p class="text-sm text-slate-600">
-          Seleccione entre 10 y 15 controles aplicables para la auditoría activa (RF02 · CP-03 · CP-13).
+          Seleccione entre 10 y 15 controles aplicables al alcance de la auditoría activa.
         </p>
       </div>
 
-      <!-- Alerta de Seguridad 403 / Bloqueo CP-03 o CP-13 -->
+      <!-- Alerta de Seguridad / Validación -->
       <div id="catalog-security-alert" class="hidden p-4 rounded-xl bg-[#fbecec] border-2 border-[#D64545] text-[#7f1d1d] text-sm font-semibold" role="alert"></div>
 
       <!-- Barra Superior de Selección Flotante (Sticky Bar) -->
-      <section class="sticky top-[68px] z-10 card p-4 bg-white/95 backdrop-blur-xs border-2 border-[#003366]/20 shadow-md">
+      <section class="sticky top-[68px] z-10 card p-4 bg-white/95 backdrop-blur-xs border border-slate-200 shadow-sm">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div class="space-y-1">
             <div class="flex flex-wrap items-center gap-2">
               <span class="text-sm font-bold text-[#003366]">
-                Controles seleccionados para la auditoría:
-                <span id="selected-count" class="text-lg font-extrabold">0</span> de 10 a 15 permitidos
+                Controles seleccionados:
+                <span id="selected-count" class="text-lg font-extrabold tabular-nums">0</span> de 10 a 15 permitidos
               </span>
               <span id="range-status-badge" class="chip chip-no-implementado">
-                Rango obligatorio: 10 a 15
+                Rango requerido: 10 a 15
               </span>
             </div>
             <p class="text-xs text-slate-500">
-              Regla RN02 / CP-03: La selección fuera del rango [10–15] bloquea el avance a ejecución.
+              Para iniciar la evaluación es necesario mantener una muestra de entre 10 y 15 controles.
             </p>
           </div>
 
           <div class="flex flex-col sm:flex-row gap-2">
-            <button type="button" id="btn-load-suggested" class="btn btn-outline text-xs">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-              <span>Cargar selección sugerida Empresa ABC (13 controles)</span>
-            </button>
             <button type="button" id="btn-save-selection" class="btn btn-primary text-xs sm:text-sm">
-              Guardar Selección y Continuar a Evaluación →
+              Guardar Selección y Continuar →
             </button>
           </div>
         </div>

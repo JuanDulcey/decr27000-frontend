@@ -3,8 +3,7 @@
  * Especificación: FRONTEND_SPEC.md §5 y PLAN_DESARROLLO.md §2.2 (F1.2)
  */
 
-import { getApiBaseUrl, getApiMode } from './config.js';
-import { handleLocalApiRequest } from './seed-data.js';
+import { getApiBaseUrl } from './config.js';
 import { showToast } from './ui.js';
 
 const REQUEST_TIMEOUT_MS = 70000; // 70s para soportar el arranque en frío de Render
@@ -32,15 +31,10 @@ function isLoginPage() {
 }
 
 /**
- * Ejecuta una petición HTTP hacia API_BASE_URL o delega al motor local si aplica
+ * Ejecuta una petición HTTP hacia API_BASE_URL
  */
 export async function request(method, path, body = null, options = {}) {
-  const mode = getApiMode();
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-
-  if (mode === 'local') {
-    return executeLocal(method, normalizedPath, body);
-  }
 
   const baseUrl = getApiBaseUrl();
   const fullUrl = `${baseUrl}${normalizedPath}`;
@@ -124,19 +118,6 @@ export async function request(method, path, body = null, options = {}) {
   }
 }
 
-function executeLocal(method, path, body) {
-  const res = handleLocalApiRequest(method, path, body);
-  if (res.status >= 400 || res.body?.ok === false) {
-    throw new ApiError(
-      res.body?.error || 'Error en la validación de la operación.',
-      res.status,
-      res.body?.field || null,
-      res.body
-    );
-  }
-  return res.body;
-}
-
 export const api = {
   checkHealth: () => request('GET', '/health', null, { silentColdStart: true }),
 
@@ -145,9 +126,6 @@ export const api = {
   getMe: () => request('GET', '/auth/me'),
 
   getUsuarios: () => request('GET', '/usuarios'),
-
-  resetDemoSeed: (confirm = 'RESTAURAR-EMPRESA-ABC') =>
-    request('POST', '/seed/reset', { confirm }),
 
   getDashboard: (idAuditoria) => {
     const query = idAuditoria ? `?id_auditoria=${encodeURIComponent(idAuditoria)}` : '';

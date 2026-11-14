@@ -1,9 +1,8 @@
 /**
- * AuditSys Mini (DECR 27000) — Controlador de Catálogo (RF02, CP-03, CP-13)
+ * AuditSys SGSI — Controlador de Catálogo de Controles
  */
 
 import { api } from '../api.js';
-import { EMPRESA_ABC_SUGGESTED_IDS } from '../config.js';
 import { normalizeSearchText } from '../format.js';
 import { icon } from '../icons.js';
 import { initLayout, navigateTo } from '../layout.js';
@@ -14,6 +13,7 @@ let selectedIds = new Set();
 let lockedIds = new Set();
 let activeAuditId = null;
 let isClosedAudit = false;
+let isAdminUser = false;
 let activeCategory = 'TODOS';
 let searchTerm = '';
 let searchDebounce = null;
@@ -34,6 +34,7 @@ export async function bootstrap() {
 
   activeAuditId = ctx.activeAuditId;
   isClosedAudit = ctx.activeAudit?.estado === 'CERRADA';
+  isAdminUser = ctx.user?.rol === 'admin';
 
   bindEvents();
   await Promise.all([loadAllControls(), loadSelectionForAudit(activeAuditId)]);
@@ -91,20 +92,8 @@ function bindEvents() {
     });
   });
 
-  document.getElementById('btn-load-suggested')?.addEventListener('click', () => {
-    if (isClosedAudit) {
-      showSecurityAlert('Operación denegada: la auditoría está CERRADA y es inmutable (CP-13).');
-      return;
-    }
-    selectedIds = new Set(EMPRESA_ABC_SUGGESTED_IDS);
-    updateSelectionHeader();
-    renderControls();
-    showToast('Selección sugerida de 13 controles (Empresa ABC) cargada.', 'info');
-  });
-
   document.getElementById('btn-save-selection')?.addEventListener('click', saveSelection);
 
-  // Modal de Edición de Catálogo (CP-13)
   const modal = document.getElementById('edit-control-modal');
   const closeModal = () => {
     modal?.classList.add('hidden');
@@ -136,7 +125,7 @@ function bindEvents() {
     } catch (err) {
       const msg =
         err.status === 403
-          ? `403 Acceso Denegado (RNF04 / CP-13): ${err.message}`
+          ? `Acceso denegado: ${err.message}`
           : err.message;
       modalAlert.textContent = msg;
       modalAlert.classList.remove('hidden');
@@ -259,10 +248,14 @@ function renderControls() {
                   : ''
               }
 
-              <button type="button" data-edit-ctrl="${escapeHtml(c.id_control)}"
-                class="btn btn-ghost text-xs text-slate-600 hover:text-[#003366] px-2.5 inline-flex items-center gap-1.5">
-                ${icon('edit', 'w-3.5 h-3.5')} Editar Criterio (Catálogo)
-              </button>
+              ${
+                isAdminUser
+                  ? `<button type="button" data-edit-ctrl="${escapeHtml(c.id_control)}"
+                      class="btn btn-ghost text-xs text-slate-600 hover:text-[#003366] px-2.5 inline-flex items-center gap-1.5">
+                      ${icon('edit', 'w-3.5 h-3.5')} Editar criterio
+                    </button>`
+                  : ''
+              }
             </div>
           </div>
         </article>
@@ -315,7 +308,7 @@ async function saveSelection() {
   const count = selectedIds.size;
 
   if (count < 10 || count > 15) {
-    const msg = `Regla RN02 / CP-03: Debe seleccionar entre 10 y 15 controles del catálogo ISO/IEC 27002:2022 para continuar (actualmente seleccionó ${count}).`;
+    const msg = `Debe seleccionar entre 10 y 15 controles del catálogo ISO/IEC 27002:2022 para continuar (actualmente seleccionó ${count}).`;
     showSecurityAlert(msg);
     showToast(msg, 'error', 7000);
     return;

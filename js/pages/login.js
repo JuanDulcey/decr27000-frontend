@@ -1,20 +1,11 @@
 /**
- * AuditSys Mini (DECR 27000) — Controlador de Login (RNF04, CP-13)
+ * AuditSys SGSI — Controlador de Acceso
  */
 
 import { api } from '../api.js';
 import { getAuthToken, getCurrentUser, setSession } from '../auth.js';
-import {
-  getApiBaseUrl,
-  getApiMode,
-  resetApiBaseUrl,
-  setApiBaseUrl,
-  setApiMode,
-} from '../config.js';
-import { showToast } from '../ui.js';
 import { attachLiveValidationClear, clearAllFieldErrors, setFieldError } from '../validators.js';
 
-// Si ya hay sesión activa, redirigir al dashboard
 if (getAuthToken() && getCurrentUser()) {
   window.location.replace('dashboard.html');
 }
@@ -27,41 +18,17 @@ const loginAlert = document.getElementById('login-alert');
 const healthPill = document.getElementById('health-pill');
 const coldBanner = document.getElementById('cold-start-banner');
 
-const apiInput = document.getElementById('api-base-url-input');
-const apiModeSelect = document.getElementById('api-mode-select');
-
 attachLiveValidationClear(form);
 
-// Mostrar aviso si fue redirigido por sesión expirada
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('expired') === '1') {
   loginAlert.textContent = 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.';
   loginAlert.classList.remove('hidden');
 }
 
-// Cargar configuración actual de API
-if (apiInput) apiInput.value = getApiBaseUrl();
-if (apiModeSelect) apiModeSelect.value = getApiMode();
-
-document.getElementById('btn-save-api-config')?.addEventListener('click', () => {
-  setApiBaseUrl(apiInput.value);
-  setApiMode(apiModeSelect.value);
-  showToast('Configuración de conexión actualizada.', 'success');
-  checkBackendHealth();
-});
-
-document.getElementById('btn-reset-api-config')?.addEventListener('click', () => {
-  resetApiBaseUrl();
-  setApiMode('remote-strict');
-  apiInput.value = getApiBaseUrl();
-  apiModeSelect.value = 'remote-strict';
-  showToast('Conexión restablecida al valor predeterminado.', 'info');
-  checkBackendHealth();
-});
-
 async function checkBackendHealth() {
   if (!healthPill) return;
-  healthPill.textContent = 'Verificando API...';
+  healthPill.textContent = 'Verificando servicio...';
   healthPill.className = 'px-3 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600';
 
   const slowTimer = setTimeout(() => {
@@ -73,15 +40,14 @@ async function checkBackendHealth() {
     clearTimeout(slowTimer);
     coldBanner?.classList.add('hidden');
     if (res && res.ok) {
-      healthPill.textContent =
-        res.service === 'auditsys-mini-local-engine' ? 'Modo Local Activo' : 'API En Línea';
+      healthPill.textContent = 'Servicio En Línea';
       healthPill.className =
         'px-3 py-1 rounded-full text-[11px] font-bold bg-[#eaf6ef] text-[#1e6f40] border border-[#2E9E5B]/30';
     }
   } catch {
     clearTimeout(slowTimer);
     coldBanner?.classList.add('hidden');
-    healthPill.textContent = 'Sin conexión remota';
+    healthPill.textContent = 'Servicio No Disponible';
     healthPill.className =
       'px-3 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300';
   }
@@ -128,23 +94,10 @@ async function performLogin(correo, password) {
 
 document.getElementById('btn-toggle-password')?.addEventListener('click', () => {
   if (!passwordInput) return;
-  const isPass = passwordInput.type === 'password';
-  passwordInput.type = isPass ? 'text' : 'password';
+  passwordInput.type = passwordInput.type === 'password' ? 'text' : 'password';
 });
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
-  performLogin(correoInput.value, passwordInput.value);
-});
-
-document.getElementById('btn-demo-auditor')?.addEventListener('click', () => {
-  correoInput.value = 'ana.auditora@auditsys.edu.co';
-  passwordInput.value = 'Audit2026*';
-  performLogin(correoInput.value, passwordInput.value);
-});
-
-document.getElementById('btn-demo-admin')?.addEventListener('click', () => {
-  correoInput.value = 'admin@auditsys.edu.co';
-  passwordInput.value = 'Audit2026*';
   performLogin(correoInput.value, passwordInput.value);
 });

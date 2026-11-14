@@ -6,9 +6,7 @@
 import { api } from './api.js';
 import {
   getActiveAuditId,
-  getCurrentUser,
   logout,
-  quickSwitchDemoRole,
   requireAuth,
   setActiveAuditId,
 } from './auth.js';
@@ -17,30 +15,12 @@ import { icon } from './icons.js';
 import { escapeHtml, renderAuditStateBadge, showToast } from './ui.js';
 
 const STEPS = [
-  { step: 1, href: 'dashboard.html', label: '1. Dashboard', short: 'Dashboard', iconName: 'chart' },
-  { step: 2, href: 'auditoria.html', label: '2. Datos de Auditoría', short: 'Auditoría', iconName: 'clipboard' },
-  {
-    step: 3,
-    href: 'catalogo.html',
-    label: '3. Catálogo y Selección [10-15]',
-    short: 'Catálogo',
-    iconName: 'book',
-  },
-  {
-    step: 4,
-    href: 'evaluacion.html',
-    label: '4. Evaluación y Evidencias',
-    short: 'Evaluación',
-    iconName: 'checkCircle',
-  },
-  {
-    step: 5,
-    href: 'hallazgos.html',
-    label: '5. Hallazgos y Recomendaciones',
-    short: 'Hallazgos',
-    iconName: 'alertTriangle',
-  },
-  { step: 6, href: 'informe.html', label: '6. Informe Consolidado', short: 'Informe', iconName: 'fileText' },
+  { step: 1, group: 'Visión General', href: 'dashboard.html', label: 'Resumen Ejecutivo', iconName: 'chart' },
+  { step: 2, group: 'Auditoría', href: 'auditoria.html', label: 'Datos y Alcance', iconName: 'clipboard' },
+  { step: 3, group: 'Auditoría', href: 'catalogo.html', label: 'Catálogo ISO 27002', iconName: 'book' },
+  { step: 4, group: 'Auditoría', href: 'evaluacion.html', label: 'Evaluación y Evidencias', iconName: 'checkCircle' },
+  { step: 5, group: 'Auditoría', href: 'hallazgos.html', label: 'Hallazgos y Acciones', iconName: 'alertTriangle' },
+  { step: 6, group: 'Entregables', href: 'informe.html', label: 'Informe Consolidado', iconName: 'fileText' },
 ];
 
 const PAGE_CONTROLLERS = {
@@ -122,23 +102,12 @@ function setActiveNavStep(activeStep) {
     sidebarNav.querySelectorAll('a[data-step]').forEach((link) => {
       const step = Number(link.getAttribute('data-step'));
       const isActive = step === activeStep;
-      link.className = `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold min-h-[44px] transition-colors ${
+      link.className = `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${
         isActive
-          ? 'bg-[#00C6D0] text-[#003366] shadow-sm'
-          : 'text-slate-100 hover:bg-white/10 hover:text-white'
+          ? 'bg-[#00C6D0] text-[#003366] font-semibold shadow-sm'
+          : 'text-slate-200 hover:bg-white/10 hover:text-white'
       }`;
       if (isActive) link.setAttribute('aria-current', 'page');
-      else link.removeAttribute('aria-current');
-    });
-  }
-
-  const stepperNav = document.querySelector('#app-stepper nav');
-  if (stepperNav) {
-    stepperNav.querySelectorAll('a[data-step]').forEach((link) => {
-      const step = Number(link.getAttribute('data-step'));
-      const isActive = step === activeStep;
-      link.classList.toggle('active', isActive);
-      if (isActive) link.setAttribute('aria-current', 'step');
       else link.removeAttribute('aria-current');
     });
   }
@@ -267,33 +236,36 @@ function renderShell(user, activeStep) {
       ? 'bg-[#00C6D0] text-[#003366]'
       : 'bg-white/15 text-white border border-white/25';
 
-  const navLinksHtml = STEPS.map((s) => {
-    const isActive = s.step === activeStep;
-    return `
-      <a href="${s.href}" data-step="${s.step}"
-         class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-semibold min-h-[44px] transition-colors ${
-           isActive
-             ? 'bg-[#00C6D0] text-[#003366] shadow-sm'
-             : 'text-slate-100 hover:bg-white/10 hover:text-white'
-         }"
-         ${isActive ? 'aria-current="page"' : ''}>
-        <span class="w-5 flex items-center justify-center" aria-hidden="true">${icon(s.iconName, 'w-4 h-4')}</span>
-        <span>${escapeHtml(s.label)}</span>
-      </a>
-    `;
-  }).join('');
+  const groups = ['Visión General', 'Auditoría', 'Entregables'];
+  const navLinksHtml = groups
+    .map((groupName) => {
+      const items = STEPS.filter((s) => s.group === groupName);
+      const links = items
+        .map((s) => {
+          const isActive = s.step === activeStep;
+          return `
+            <a href="${s.href}" data-step="${s.step}"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${
+                 isActive
+                   ? 'bg-[#00C6D0] text-[#003366] font-semibold shadow-sm'
+                   : 'text-slate-200 hover:bg-white/10 hover:text-white'
+               }"
+               ${isActive ? 'aria-current="page"' : ''}>
+              <span class="w-5 flex items-center justify-center shrink-0" aria-hidden="true">${icon(s.iconName, 'w-4 h-4')}</span>
+              <span>${escapeHtml(s.label)}</span>
+            </a>
+          `;
+        })
+        .join('');
 
-  const stepperHtml = STEPS.map((s) => {
-    const isActive = s.step === activeStep;
-    return `
-      <a href="${s.href}" data-step="${s.step}" class="stepper-step ${isActive ? 'active' : ''}" ${
-        isActive ? 'aria-current="step"' : ''
-      }>
-        <span class="step-num">${s.step}</span>
-        <span>${escapeHtml(s.short)}</span>
-      </a>
-    `;
-  }).join('<span class="text-slate-300 select-none px-0.5" aria-hidden="true">→</span>');
+      return `
+        <div class="space-y-1">
+          <div class="px-3 pt-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(groupName)}</div>
+          ${links}
+        </div>
+      `;
+    })
+    .join('');
 
   const layoutWrapper = document.createElement('div');
   layoutWrapper.className = 'min-h-screen flex flex-col md:flex-row bg-slate-50';
@@ -311,19 +283,19 @@ function renderShell(user, activeStep) {
               A
             </div>
             <div>
-              <div class="font-bold text-base leading-tight">AuditSys Mini</div>
+              <div class="font-bold text-base leading-tight">AuditSys SGSI</div>
               <div class="text-[11px] text-[#00C6D0] font-semibold tracking-wide">ISO/IEC 27002:2022</div>
             </div>
           </a>
           <button type="button" id="sidebar-close-btn" class="md:hidden text-white/80 hover:text-white p-2 min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Cerrar menú">${icon('x', 'w-5 h-5')}</button>
         </div>
 
-        <nav class="mt-5 space-y-1.5" aria-label="Navegación principal">
+        <nav class="mt-4 space-y-4" aria-label="Navegación principal">
           ${navLinksHtml}
         </nav>
       </div>
 
-      <!-- Perfil del Usuario y Cambio Rápido de Rol -->
+      <!-- Perfil del Usuario -->
       <div class="p-4 border-t border-white/15 bg-[#002850] space-y-3">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
@@ -335,23 +307,17 @@ function renderShell(user, activeStep) {
           </span>
         </div>
 
-        <div class="flex flex-col gap-2">
-          <button type="button" id="btn-switch-role"
-            class="w-full min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors text-center cursor-pointer">
-            Cambiar a perfil ${user.rol === 'admin' ? 'Auditora' : 'Admin SGSI'}
-          </button>
-          <button type="button" id="btn-logout"
-            class="w-full min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold bg-[#D64545]/90 hover:bg-[#D64545] text-white transition-colors text-center cursor-pointer">
-            Cerrar sesión
-          </button>
-        </div>
+        <button type="button" id="btn-logout"
+          class="w-full min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold bg-white/10 hover:bg-[#D64545] text-white border border-white/15 hover:border-transparent transition-colors text-center cursor-pointer">
+          Cerrar sesión
+        </button>
       </div>
     </aside>
 
     <!-- Columna Principal -->
     <div id="main-wrapper" class="flex-1 flex flex-col min-w-0">
       <!-- Top Header Persistente -->
-      <header id="app-header" class="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 py-3 shadow-2xs no-print">
+      <header id="app-header" class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-4 sm:px-6 py-3 no-print">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-2.5 flex-1 min-w-[220px]">
             <button type="button" id="sidebar-open-btn"
@@ -373,27 +339,20 @@ function renderShell(user, activeStep) {
           <div class="flex items-center gap-2">
             <a href="auditoria.html?mode=new" class="btn btn-primary text-xs sm:text-sm whitespace-nowrap">
               <span aria-hidden="true">+</span>
-              <span>Nueva Auditoría</span>
+              <span>Nueva auditoría</span>
             </a>
           </div>
         </div>
         <div id="header-audit-badge-mobile" class="sm:hidden mt-2"></div>
       </header>
 
-      <!-- Stepper Guiado en 6 Pasos -->
-      <div id="app-stepper" class="bg-white border-b border-slate-200 px-4 py-1.5 no-print">
-        <nav class="stepper-container" aria-label="Flujo de auditoría en 6 pasos">
-          ${stepperHtml}
-        </nav>
-      </div>
-
       <!-- Contenido de la Página -->
-      <main id="app-main" class="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto">
+      <main id="app-main" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
       </main>
 
       <!-- Pie de Página Normativo -->
       <footer class="bg-white border-t border-slate-200 px-4 py-3 text-center text-xs text-slate-500 no-print">
-        <span>AuditSys Mini (DECR 27000) · Referentes: <strong>${escapeHtml(OFFICIAL_REFERENTES)}</strong></span>
+        <span>AuditSys SGSI · Referentes normativos: <strong>${escapeHtml(OFFICIAL_REFERENTES)}</strong></span>
       </footer>
     </div>
   `;
@@ -433,22 +392,6 @@ function bindSidebarEvents() {
 
   const logoutBtn = document.getElementById('btn-logout');
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
-
-  const switchBtn = document.getElementById('btn-switch-role');
-  if (switchBtn) {
-    switchBtn.addEventListener('click', async () => {
-      const current = getCurrentUser();
-      const target = current?.rol === 'admin' ? 'auditor' : 'admin';
-      try {
-        switchBtn.disabled = true;
-        await quickSwitchDemoRole(target);
-        window.location.reload();
-      } catch (err) {
-        showToast(err.message, 'error');
-        switchBtn.disabled = false;
-      }
-    });
-  }
 }
 
 export function populateAuditSelector(auditorias, activeAudit) {

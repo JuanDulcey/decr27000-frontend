@@ -1,9 +1,6 @@
 /**
- * AuditSys Mini (DECR 27000) — Gestión de Sesión, Roles y Protección de Rutas (RNF04 / CP-13)
- * Especificación: FRONTEND_SPEC.md §4.0 y §4.1
+ * AuditSys SGSI — Gestión de Sesión, Roles y Protección de Rutas
  */
-
-import { api } from './api.js';
 
 const TOKEN_KEY = 'auditsys_token';
 const USER_KEY = 'auditsys_user';
@@ -71,21 +68,4 @@ export function requireAuth() {
     return null;
   }
   return user;
-}
-
-/**
- * Permite cambiar rápidamente entre Auditora Líder y Administrador SGSI durante la sustentación
- */
-export async function quickSwitchDemoRole(targetRole = 'auditor') {
-  const creds =
-    targetRole === 'admin'
-      ? { correo: 'admin@auditsys.edu.co', password: 'Audit2026*' }
-      : { correo: 'ana.auditora@auditsys.edu.co', password: 'Audit2026*' };
-
-  const res = await api.login(creds.correo, creds.password);
-  if (res?.data?.token && res?.data?.usuario) {
-    setSession(res.data.token, res.data.usuario);
-    return res.data.usuario;
-  }
-  throw new Error('No se pudo cambiar de perfil demo.');
 }

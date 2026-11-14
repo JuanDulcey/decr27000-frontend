@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>4. Evaluación y Evidencias — AuditSys Mini (ISO/IEC 27002:2022)</title>
+  <title>Evaluación y Evidencias — AuditSys SGSI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
@@ -14,16 +14,16 @@
         <div>
           <h1 class="text-2xl font-extrabold text-[#003366]">Evaluación de Controles y Evidencias</h1>
           <p class="text-sm text-slate-600">
-            Evalúe cada control seleccionado, registre su observación obligatoria y adjunte evidencias (RF03 · RF04 · CP-04 · CP-05 · CP-06).
+            Evalúe cada control seleccionado, registre su observación y adjunte las evidencias correspondientes.
           </p>
         </div>
         <a href="hallazgos.html" class="btn btn-outline text-xs sm:text-sm">
-          Ir a Hallazgos y Trazabilidad →
+          Ir a Hallazgos y Acciones →
         </a>
       </div>
 
       <div id="eval-closed-banner" class="hidden p-4 rounded-xl bg-amber-50 border-2 border-[#F2A900] text-amber-950 text-sm" role="alert">
-        <strong>Auditoría CERRADA (Inmutable):</strong> No se permiten modificaciones en evaluaciones ni evidencias (CP-13).
+        <strong>Auditoría cerrada:</strong> No se permiten modificaciones en evaluaciones ni evidencias.
       </div>
 
       <!-- Layout Maestro-Detalle (2 columnas en escritorio, 1 en móvil) -->
@@ -96,7 +96,7 @@
           <p id="error-qh-efecto" class="field-error hidden"></p>
         </div>
         <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
-          <div class="text-xs font-bold text-[#003366]">Recomendación Inicial (RF06)</div>
+          <div class="text-xs font-bold text-[#003366]">Recomendación Inicial</div>
           <textarea id="qh-rec-desc" rows="2" class="form-textarea text-sm" placeholder="Acción correctiva recomendada..."></textarea>
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <select id="qh-rec-prio" class="form-select text-xs">

@@ -1,5 +1,5 @@
 /**
- * AuditSys Mini (DECR 27000) — Controlador de Auditoría (RF01, CP-01, CP-02, CP-08, CP-13)
+ * AuditSys SGSI — Controlador de Auditoría
  */
 
 import { api } from '../api.js';
@@ -180,12 +180,12 @@ async function renderLifecyclePanel(audit) {
       </div>`;
 
     checklistEl.innerHTML = `
-      <div class="font-bold text-[#003366] mb-1">Verificación de Reglas de Negocio</div>
-      ${ruleRow(okRange, 'Selección 10–15 controles (RN02)', verif.total_seleccionados)}
+      <div class="font-bold text-[#003366] mb-1">Requisitos de Transición</div>
+      ${ruleRow(okRange, 'Selección de 10 a 15 controles', verif.total_seleccionados)}
       ${ruleRow(okPend, 'Sin controles pendientes', `${(verif.pendientes || []).length} pend.`)}
-      ${ruleRow(okEv, 'Evidencias Impl./Parc. (RN04)', `${(verif.sin_evidencia || []).length} falt.`)}
-      ${ruleRow(okHall, 'Mínimo 3 hallazgos (RN06)', verif.total_hallazgos)}
-      ${ruleRow(okRec, 'Todos con recomendación', `${(verif.hallazgos_sin_recomendacion || []).length} sin rec.`)}
+      ${ruleRow(okEv, 'Evidencias en Impl. / Parcial', `${(verif.sin_evidencia || []).length} falt.`)}
+      ${ruleRow(okHall, 'Mínimo 3 hallazgos', verif.total_hallazgos)}
+      ${ruleRow(okRec, 'Hallazgos con recomendación', `${(verif.hallazgos_sin_recomendacion || []).length} sin rec.`)}
     `;
   }
 
@@ -223,7 +223,7 @@ async function renderLifecyclePanel(audit) {
     actionsEl.innerHTML = `
       <div class="p-3 rounded-lg bg-[#eaf6ef] border border-[#2E9E5B] text-xs text-green-900 font-semibold flex items-center justify-center gap-1.5">
         ${icon('checkCircle', 'w-4 h-4')}
-        <span>Auditoría cerrada definitivamente (CP-13).</span>
+        <span>Auditoría cerrada definitivamente.</span>
       </div>
       <a href="informe.html" class="btn btn-primary w-full text-xs">Ver Informe Consolidado</a>
     `;
@@ -247,7 +247,7 @@ async function renderLifecyclePanel(audit) {
         const ok = await confirmModal({
           title: 'Cerrar Auditoría Definitivamente',
           message:
-            'Una vez CERRADA, la auditoría será inmutable (RN07 / CP-13) y no permitirá editar controles, evidencias, hallazgos ni recomendaciones. ¿Desea continuar?',
+            'Una vez cerrada, la auditoría quedará en modo de solo lectura y no permitirá editar controles, evidencias, hallazgos ni recomendaciones. ¿Desea continuar?',
           confirmText: 'Sí, Cerrar Auditoría',
           danger: true,
         });

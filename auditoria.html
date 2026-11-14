@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2. Datos de Auditoría — AuditSys Mini (ISO/IEC 27002:2022)</title>
+  <title>Datos y Alcance — AuditSys SGSI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
@@ -14,15 +14,15 @@
         <div>
           <h1 id="page-title" class="text-2xl font-extrabold text-[#003366]">Configuración de Auditoría</h1>
           <p class="text-sm text-slate-600">
-            Registro de datos generales, alcance, referentes normativos y ciclo de vida (RF01 · CP-01 · CP-02 · CP-13).
+            Registro de datos generales, alcance, referentes normativos y ciclo de vida de la auditoría.
           </p>
         </div>
         <div id="audit-state-pill"></div>
       </div>
 
-      <!-- Aviso de Inmutabilidad cuando estado === 'CERRADA' (CP-13) -->
+      <!-- Aviso de Inmutabilidad cuando estado === 'CERRADA' -->
       <div id="closed-audit-banner" class="hidden p-4 rounded-xl bg-amber-50 border-2 border-[#F2A900] text-amber-950 text-sm" role="alert">
-        <strong>Auditoría CERRADA (Inmutable — RN07 / CP-13):</strong> Esta auditoría ha sido cerrada formalmente. Todos los campos se encuentran bloqueados en modo de solo lectura.
+        <strong>Auditoría cerrada:</strong> Esta auditoría ha sido cerrada formalmente. Todos los campos se encuentran en modo de solo lectura.
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -106,7 +106,7 @@
           <div>
             <h2 class="text-base font-bold text-[#003366]">Ciclo de Vida de la Auditoría</h2>
             <p class="text-xs text-slate-500 mt-0.5">
-              Transiciones verificadas por el servidor (RN02, RN04, RN06, RN07).
+              Requisitos verificados antes de cada cambio de estado.
             </p>
           </div>
 

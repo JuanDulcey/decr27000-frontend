@@ -214,7 +214,7 @@ export function validateHallazgoForm(values, requireRecomendacion = false) {
   }
 
   if (!values.causa || !values.causa.trim()) {
-    errors['h-causa'] = 'La causa raíz de la desviación es obligatoria (CP-07).';
+    errors['h-causa'] = 'La causa raíz de la desviación es obligatoria.';
     valid = false;
   }
 
