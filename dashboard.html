@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Resumen Ejecutivo — AuditSys SGSI</title>
+  <title>Resumen Ejecutivo — DECR 27000 · AuditSys SGSI</title>
+  <link rel="icon" href="logo.jpg" type="image/jpeg" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script
     src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"
@@ -17,7 +18,7 @@
       <!-- Encabezado -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 class="text-2xl font-extrabold text-[#003366] tracking-tight">Resumen Ejecutivo</h1>
+          <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Resumen Ejecutivo</h1>
           <p class="text-sm text-slate-500 mt-0.5">
             Estado general e indicadores de cumplimiento de la auditoría activa.
           </p>
@@ -27,48 +28,74 @@
         </a>
       </div>
 
+      <!-- Guía rápida desplegable -->
+      <details class="help-guide px-4 py-3 text-xs text-slate-700">
+        <summary class="flex items-center justify-between gap-2 font-bold text-slate-900">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+            Guía rápida de esta vista: Cómo leer los indicadores
+          </span>
+          <span class="help-guide-chevron text-slate-400 transition-transform duration-200" aria-hidden="true">▾</span>
+        </summary>
+        <div class="mt-2.5 pt-2.5 border-t border-emerald-200/60 grid grid-cols-1 sm:grid-cols-3 gap-3 text-slate-600">
+          <div><strong class="text-slate-900">1. Cumplimiento Base:</strong> Mide solo los controles calificados como <em>Implementado</em> frente al total de controles aplicables (excluye N/A).</div>
+          <div><strong class="text-slate-900">2. Índice Ponderado:</strong> Otorga 100 % a controles implementados y 50 % a los <em>Parciales</em> para reflejar madurez real.</div>
+          <div><strong class="text-slate-900">3. Siguiente paso:</strong> Usa los enlaces del desglose por dominio o el menú lateral para avanzar en la evaluación o generar el informe PDF.</div>
+        </div>
+      </details>
+
       <!-- Alerta de Error de Red / Reintento -->
       <div id="dashboard-error-banner" class="hidden"></div>
 
       <!-- Banner de Resumen de Auditoría Activa -->
-      <section id="active-audit-banner" class="card p-5 bg-gradient-to-r from-[#003366] to-[#00468c] text-white border-0 shadow-sm">
+      <section id="active-audit-banner" class="card p-5 bg-gradient-to-r from-[#0F172A] via-[#1E293B] to-[#0F172A] text-white border border-slate-800 shadow-md">
         <div class="skeleton h-6 w-2/3 bg-white/20 mb-2"></div>
         <div class="skeleton h-4 w-1/2 bg-white/20"></div>
       </section>
 
       <!-- Cuatro Tarjetas KPI Superiores -->
       <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Indicadores clave de cumplimiento">
-        <article class="card p-5">
+        <article class="card card-interactive p-5">
           <div class="flex items-center justify-between gap-2">
-            <p class="text-xs font-semibold text-slate-500">Cumplimiento Base</p>
-            <span class="w-2 h-2 rounded-full bg-[#003366]"></span>
+            <p class="text-xs font-semibold text-slate-500 inline-flex items-center gap-1.5">
+              Cumplimiento Base
+              <span class="help-tip" tabindex="0" aria-label="Ayuda sobre Cumplimiento Base">?
+                <span class="help-tip-bubble">Porcentaje estricto: (Implementados / Controles Aplicables) × 100.</span>
+              </span>
+            </p>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#007BFF]"></span>
           </div>
-          <p id="kpi-cumplimiento-base" class="text-3xl font-extrabold text-[#003366] mt-2 tabular-nums">0,0 %</p>
+          <p id="kpi-cumplimiento-base" class="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">0,0 %</p>
           <p id="kpi-cumplimiento-sub" class="text-xs text-slate-500 mt-1.5"><span class="skeleton inline-block h-3 w-28"></span></p>
         </article>
 
-        <article class="card p-5">
+        <article class="card card-interactive p-5">
           <div class="flex items-center justify-between gap-2">
-            <p class="text-xs font-semibold text-slate-500">Índice Ponderado</p>
-            <span class="w-2 h-2 rounded-full bg-[#00C6D0]"></span>
+            <p class="text-xs font-semibold text-slate-500 inline-flex items-center gap-1.5">
+              Índice Ponderado
+              <span class="help-tip" tabindex="0" aria-label="Ayuda sobre Índice Ponderado">?
+                <span class="help-tip-bubble">Pondera Implementados × 1.0 y Parciales × 0.5 sobre controles aplicables.</span>
+              </span>
+            </p>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span>
           </div>
-          <p id="kpi-indice-ponderado" class="text-3xl font-extrabold text-[#003366] mt-2 tabular-nums">0,0 %</p>
+          <p id="kpi-indice-ponderado" class="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">0,0 %</p>
           <p id="kpi-indice-sub" class="text-xs text-slate-500 mt-1.5"><span class="skeleton inline-block h-3 w-28"></span></p>
         </article>
 
-        <article class="card p-5">
+        <article class="card card-interactive p-5">
           <div class="flex items-center justify-between gap-2">
             <p class="text-xs font-semibold text-slate-500">Controles Evaluados</p>
-            <span class="w-2 h-2 rounded-full bg-[#2E9E5B]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#059669]"></span>
           </div>
           <p id="kpi-evaluados" class="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">0 / 0</p>
           <p id="kpi-evaluados-sub" class="text-xs text-slate-500 mt-1.5"><span class="skeleton inline-block h-3 w-24"></span></p>
         </article>
 
-        <article class="card p-5">
+        <article class="card card-interactive p-5">
           <div class="flex items-center justify-between gap-2">
             <p class="text-xs font-semibold text-slate-500">Hallazgos Documentados</p>
-            <span class="w-2 h-2 rounded-full bg-[#D64545]"></span>
+            <span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span>
           </div>
           <p id="kpi-hallazgos" class="text-3xl font-extrabold text-slate-900 mt-2 tabular-nums">0</p>
           <p id="kpi-hallazgos-sub" class="text-xs text-slate-500 mt-1.5"><span class="skeleton inline-block h-3 w-24"></span></p>
@@ -79,10 +106,10 @@
       <section id="domain-breakdown-section" class="card p-5 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h2 class="text-base font-bold text-[#003366]">Cumplimiento por Dominio ISO/IEC 27002:2022</h2>
+            <h2 class="text-base font-bold text-slate-900">Cumplimiento por Dominio ISO/IEC 27002:2022</h2>
             <p class="text-xs text-slate-500">Desglose ponderado sobre los 4 dominios normativos de la muestra seleccionada.</p>
           </div>
-          <a href="evaluacion.html" class="text-xs font-semibold text-[#003366] hover:underline">Evaluar controles →</a>
+          <a href="evaluacion.html" class="text-xs font-semibold text-[#007BFF] hover:text-[#059669] hover:underline">Evaluar controles →</a>
         </div>
         <div id="domain-breakdown-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="skeleton h-20 w-full"></div>

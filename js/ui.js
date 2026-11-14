@@ -183,7 +183,7 @@ export function confirmModal({
     const backdrop = document.createElement('div');
     backdrop.id = 'modal-backdrop';
     backdrop.className =
-      'fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 no-print';
+      'fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4 no-print';
     backdrop.setAttribute('role', 'dialog');
     backdrop.setAttribute('aria-modal', 'true');
 
@@ -204,8 +204,8 @@ export function confirmModal({
       : '';
 
     backdrop.innerHTML = `
-      <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
-        <div class="${danger ? 'bg-[#D64545]' : 'bg-[#003366]'} text-white px-5 py-4 flex items-center justify-between">
+      <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
+        <div class="${danger ? 'bg-[#D64545]' : 'bg-[#0F172A]'} text-white px-5 py-4 flex items-center justify-between">
           <h3 class="font-bold text-base">${escapeHtml(title)}</h3>
           <button type="button" id="modal-close-x" class="text-white/80 hover:text-white p-1" aria-label="Cerrar">${icon('x', 'w-4 h-4')}</button>
         </div>

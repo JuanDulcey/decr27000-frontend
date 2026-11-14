@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Informe Consolidado — AuditSys SGSI</title>
+  <title>Informe Consolidado — DECR 27000 · AuditSys SGSI</title>
+  <link rel="icon" href="logo.jpg" type="image/jpeg" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script
     src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
@@ -11,14 +12,14 @@
     crossorigin="anonymous"></script>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body class="bg-slate-50">
+<body class="bg-[#F1F5F9]">
   <div id="app-shell">
     <div id="page-content" class="space-y-6">
       <!-- Barra de Acciones y Configuración (No imprimible) -->
       <section class="card p-5 space-y-4 no-print">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
-            <h1 class="text-2xl font-extrabold text-[#003366]">Informe Consolidado de Auditoría</h1>
+            <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Informe Consolidado de Auditoría</h1>
             <p class="text-sm text-slate-600">
               Vista previa de 8 secciones, historial de versiones y exportación a PDF.
             </p>
@@ -63,6 +64,21 @@
           </div>
         </div>
       </section>
+
+      <details class="help-guide px-4 py-3 text-xs text-slate-700 no-print">
+        <summary class="flex items-center justify-between gap-2 font-bold text-slate-900">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+            Guía rápida de esta etapa: Versionado y exportación oficial en PDF
+          </span>
+          <span class="help-guide-chevron text-slate-400 transition-transform duration-200" aria-hidden="true">▾</span>
+        </summary>
+        <div class="mt-2.5 pt-2.5 border-t border-emerald-200/60 grid grid-cols-1 sm:grid-cols-3 gap-3 text-slate-600">
+          <div><strong class="text-slate-900">1. Personaliza secciones:</strong> Marca o desmarca cualquiera de los 8 capítulos antes de imprimir o descargar el PDF.</div>
+          <div><strong class="text-slate-900">2. Guarda versiones:</strong> Congela una instantánea histórica del informe antes de cerrar la auditoría para conservar trazabilidad.</div>
+          <div><strong class="text-slate-900">3. Sello documental:</strong> El documento muestra automáticamente si está en <em>Borrador</em>, <em>En Revisión</em> o <em>Definitivo Cerrado</em>.</div>
+        </div>
+      </details>
 
       <!-- Documento Oficial del Informe (Imprimible / Exportable a PDF) -->
       <article id="report-document" class="card bg-white p-6 sm:p-10 max-w-5xl mx-auto space-y-8 shadow-md">

@@ -102,14 +102,25 @@ function setActiveNavStep(activeStep) {
     sidebarNav.querySelectorAll('a[data-step]').forEach((link) => {
       const step = Number(link.getAttribute('data-step'));
       const isActive = step === activeStep;
-      link.className = `flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${
+      link.className = `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium min-h-[44px] transition-all ${
         isActive
-          ? 'bg-[#00C6D0] text-[#003366] font-semibold shadow-sm'
-          : 'text-slate-200 hover:bg-white/10 hover:text-white'
+          ? 'bg-gradient-to-r from-[#007BFF] to-[#10B981] text-white font-semibold shadow-md shadow-[#007BFF]/20'
+          : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'
       }`;
       if (isActive) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
     });
+  }
+
+  const currentStepObj = STEPS.find((s) => s.step === activeStep);
+  const stepLabelEl = document.getElementById('header-step-label');
+  const stepBarEl = document.getElementById('header-step-bar');
+  if (stepLabelEl && currentStepObj) {
+    stepLabelEl.textContent = `Etapa ${currentStepObj.step} de ${STEPS.length} · ${currentStepObj.label}`;
+  }
+  if (stepBarEl) {
+    const pct = Math.max(0, Math.min(100, (activeStep / STEPS.length) * 100));
+    stepBarEl.style.width = `${pct}%`;
   }
 }
 
@@ -182,6 +193,7 @@ export async function navigateTo(url, { pushState = true } = {}) {
     }
 
     const imported = document.importNode(nextPageContent, true);
+    imported.classList.add('page-enter');
     appMain.replaceChildren(imported);
     window.scrollTo({ top: 0, behavior: 'instant' });
 
@@ -233,8 +245,8 @@ function renderShell(user, activeStep) {
 
   const roleBadgeCls =
     user.rol === 'admin'
-      ? 'bg-[#00C6D0] text-[#003366]'
-      : 'bg-white/15 text-white border border-white/25';
+      ? 'bg-gradient-to-r from-[#007BFF] to-[#10B981] text-white'
+      : 'bg-white/10 text-slate-200 border border-white/20';
 
   const groups = ['Visión General', 'Auditoría', 'Entregables'];
   const navLinksHtml = groups
@@ -245,14 +257,15 @@ function renderShell(user, activeStep) {
           const isActive = s.step === activeStep;
           return `
             <a href="${s.href}" data-step="${s.step}"
-               class="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium min-h-[44px] transition-colors ${
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium min-h-[44px] transition-all ${
                  isActive
-                   ? 'bg-[#00C6D0] text-[#003366] font-semibold shadow-sm'
-                   : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                   ? 'bg-gradient-to-r from-[#007BFF] to-[#10B981] text-white font-semibold shadow-md shadow-[#007BFF]/20'
+                   : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'
                }"
                ${isActive ? 'aria-current="page"' : ''}>
               <span class="w-5 flex items-center justify-center shrink-0" aria-hidden="true">${icon(s.iconName, 'w-4 h-4')}</span>
-              <span>${escapeHtml(s.label)}</span>
+              <span class="flex-1 truncate">${escapeHtml(s.label)}</span>
+              <span class="text-[10px] font-bold opacity-65 tabular-nums">0${s.step}</span>
             </a>
           `;
         })
@@ -260,24 +273,27 @@ function renderShell(user, activeStep) {
 
       return `
         <div class="space-y-1">
-          <div class="px-3 pt-2 pb-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">${escapeHtml(groupName)}</div>
+          <div class="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">${escapeHtml(groupName)}</div>
           ${links}
         </div>
       `;
     })
     .join('');
 
+  const currentStepObj = STEPS.find((s) => s.step === activeStep) || STEPS[0];
+  const progressPct = Math.round((currentStepObj.step / STEPS.length) * 100);
+
   const layoutWrapper = document.createElement('div');
-  layoutWrapper.className = 'min-h-screen flex flex-col md:flex-row bg-slate-50';
+  layoutWrapper.className = 'min-h-screen flex flex-col md:flex-row bg-[#F1F5F9]';
   layoutWrapper.innerHTML = `
     <!-- Overlay móvil para sidebar -->
-    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/50 z-30 hidden md:hidden no-print"></div>
+    <div id="sidebar-backdrop" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-30 hidden md:hidden no-print"></div>
 
-    <!-- Sidebar Izquierdo (#003366) -->
+    <!-- Sidebar Izquierdo DECR 27000 -->
     <aside id="app-sidebar"
-      class="fixed md:sticky top-0 left-0 z-40 h-screen w-72 bg-[#003366] text-white flex flex-col justify-between shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out no-print">
+      class="fixed md:sticky top-0 left-0 z-40 h-screen w-72 bg-[#0F172A] text-white border-r border-slate-800/80 flex flex-col justify-between shrink-0 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out no-print">
       <div class="p-4 overflow-y-auto">
-        <div class="flex items-center justify-between pb-4 border-b border-white/15">
+        <div class="flex items-center justify-between pb-4 border-b border-white/10">
           <a href="dashboard.html" class="flex items-center gap-2.5 text-white no-underline">
             <img src="logo.jpg" alt="DECR 27000"
               class="h-10 w-auto rounded-lg object-contain bg-[#22252A] px-2 py-1 border border-white/15 shadow-sm" />
@@ -295,11 +311,11 @@ function renderShell(user, activeStep) {
       </div>
 
       <!-- Perfil del Usuario -->
-      <div class="p-4 border-t border-white/15 bg-[#002850] space-y-3">
+      <div class="p-4 border-t border-white/10 bg-[#0B1120] space-y-3">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             <p class="text-sm font-bold text-white truncate">${escapeHtml(user.nombre)}</p>
-            <p class="text-xs text-slate-300 truncate">${escapeHtml(user.correo)}</p>
+            <p class="text-xs text-slate-400 truncate">${escapeHtml(user.correo)}</p>
           </div>
           <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shrink-0 ${roleBadgeCls}">
             ${escapeHtml(user.rol)}
@@ -307,7 +323,7 @@ function renderShell(user, activeStep) {
         </div>
 
         <button type="button" id="btn-logout"
-          class="w-full min-h-[44px] px-3 py-2 rounded-lg text-xs font-semibold bg-white/10 hover:bg-[#D64545] text-white border border-white/15 hover:border-transparent transition-colors text-center cursor-pointer">
+          class="w-full min-h-[44px] px-3 py-2 rounded-xl text-xs font-semibold bg-white/[0.07] hover:bg-[#D64545] text-slate-200 hover:text-white border border-white/10 hover:border-transparent transition-colors text-center cursor-pointer">
           Cerrar sesión
         </button>
       </div>
@@ -316,7 +332,7 @@ function renderShell(user, activeStep) {
     <!-- Columna Principal -->
     <div id="main-wrapper" class="flex-1 flex flex-col min-w-0">
       <!-- Top Header Persistente -->
-      <header id="app-header" class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-slate-200 px-4 sm:px-6 py-3 no-print">
+      <header id="app-header" class="sticky top-0 z-20 bg-white/85 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 pt-3 pb-2.5 no-print">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center gap-2.5 flex-1 min-w-[220px]">
             <button type="button" id="sidebar-open-btn"
@@ -327,7 +343,7 @@ function renderShell(user, activeStep) {
 
             <div class="flex-1 max-w-md">
               <label for="global-audit-selector" class="sr-only">Auditoría Activa</label>
-              <select id="global-audit-selector" class="form-select text-sm font-semibold text-[#003366]">
+              <select id="global-audit-selector" class="form-select text-sm font-semibold text-slate-900">
                 <option value="">Cargando auditorías...</option>
               </select>
             </div>
@@ -343,6 +359,16 @@ function renderShell(user, activeStep) {
           </div>
         </div>
         <div id="header-audit-badge-mobile" class="sm:hidden mt-2"></div>
+
+        <!-- Barra de progreso del flujo de auditoría -->
+        <div class="mt-2.5 flex items-center gap-3">
+          <span id="header-step-label" class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">
+            Etapa ${currentStepObj.step} de ${STEPS.length} · ${escapeHtml(currentStepObj.label)}
+          </span>
+          <div class="flex-1 h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
+            <div id="header-step-bar" class="h-full bg-gradient-to-r from-[#007BFF] to-[#10B981] rounded-full transition-all duration-300" style="width: ${progressPct}%"></div>
+          </div>
+        </div>
       </header>
 
       <!-- Contenido de la Página -->
@@ -350,12 +376,13 @@ function renderShell(user, activeStep) {
       </main>
 
       <!-- Pie de Página Normativo -->
-      <footer class="bg-white border-t border-slate-200 px-4 py-3 text-center text-xs text-slate-500 no-print">
-        <span>AuditSys SGSI · Referentes normativos: <strong>${escapeHtml(OFFICIAL_REFERENTES)}</strong></span>
+      <footer class="bg-white/80 border-t border-slate-200 px-4 py-3 text-center text-xs text-slate-500 no-print">
+        <span>DECR 27000 · AuditSys SGSI · Referentes normativos: <strong>${escapeHtml(OFFICIAL_REFERENTES)}</strong></span>
       </footer>
     </div>
   `;
 
+  mainFragment.classList.add('page-enter');
   const mainSlot = layoutWrapper.querySelector('#app-main');
   mainSlot.appendChild(mainFragment);
 

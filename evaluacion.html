@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Evaluación y Evidencias — AuditSys SGSI</title>
+  <title>Evaluación y Evidencias — DECR 27000 · AuditSys SGSI</title>
+  <link rel="icon" href="logo.jpg" type="image/jpeg" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body class="bg-slate-50">
+<body class="bg-[#F1F5F9]">
   <div id="app-shell">
     <div id="page-content" class="space-y-5">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 class="text-2xl font-extrabold text-[#003366]">Evaluación de Controles y Evidencias</h1>
+          <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Evaluación de Controles y Evidencias</h1>
           <p class="text-sm text-slate-600">
             Evalúe cada control seleccionado, registre su observación y adjunte las evidencias correspondientes.
           </p>
@@ -21,6 +22,21 @@
           Ir a Hallazgos y Acciones →
         </a>
       </div>
+
+      <details class="help-guide px-4 py-3 text-xs text-slate-700">
+        <summary class="flex items-center justify-between gap-2 font-bold text-slate-900">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+            Guía rápida de esta etapa: Criterios de calificación y evidencias
+          </span>
+          <span class="help-guide-chevron text-slate-400 transition-transform duration-200" aria-hidden="true">▾</span>
+        </summary>
+        <div class="mt-2.5 pt-2.5 border-t border-emerald-200/60 grid grid-cols-1 sm:grid-cols-3 gap-3 text-slate-600">
+          <div><strong class="text-slate-900">1. Estados y N/A:</strong> Califica como <em>Implementado</em>, <em>Parcial</em>, <em>No Implementado</em> o <em>No Aplicable</em> (este último exige justificación escrita).</div>
+          <div><strong class="text-slate-900">2. Evidencias obligatorias:</strong> Todo control <em>Implementado</em> o <em>Parcial</em> requiere al menos una evidencia documental o enlace de respaldo.</div>
+          <div><strong class="text-slate-900">3. Flujo ágil:</strong> Usa <em>Guardar y siguiente pendiente →</em> o las flechas <strong>↑ / ↓</strong> para avanzar sin interrupciones.</div>
+        </div>
+      </details>
 
       <div id="eval-closed-banner" class="hidden p-4 rounded-xl bg-amber-50 border-2 border-[#F2A900] text-amber-950 text-sm" role="alert">
         <strong>Auditoría cerrada:</strong> No se permiten modificaciones en evaluaciones ni evidencias.
@@ -36,20 +52,26 @@
               <span id="eval-progress-text">0 de 0 evaluados</span>
             </div>
             <div class="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-              <div id="eval-progress-bar" class="h-full bg-[#00C6D0] rounded-full transition-all" style="width: 0%"></div>
+              <div id="eval-progress-bar" class="h-full bg-gradient-to-r from-[#007BFF] to-[#10B981] rounded-full transition-all" style="width: 0%"></div>
             </div>
             <p class="text-[11px] text-slate-400 mt-1">Atajo: use ↑ / ↓ para cambiar de control</p>
           </div>
 
           <div id="controls-master-list" class="space-y-2 max-h-[65vh] overflow-y-auto pr-1">
-            <div class="p-4 text-center text-xs text-slate-500">Cargando controles seleccionados...</div>
+            <div class="p-3 space-y-2" aria-busy="true">
+              <div class="skeleton h-10 w-full"></div>
+              <div class="skeleton h-10 w-full"></div>
+              <div class="skeleton h-10 w-full"></div>
+            </div>
           </div>
         </aside>
 
         <!-- Columna Derecha: Panel Integral del Control Activo -->
         <section id="control-detail-panel" class="card p-5 lg:col-span-8 space-y-6">
-          <div class="p-8 text-center text-sm text-slate-500">
-            Seleccione un control de la lista para iniciar su evaluación.
+          <div class="p-4 space-y-3" aria-busy="true">
+            <div class="skeleton h-6 w-1/2"></div>
+            <div class="skeleton h-4 w-full"></div>
+            <div class="skeleton h-24 w-full"></div>
           </div>
         </section>
       </div>
@@ -57,9 +79,9 @@
   </div>
 
   <!-- Modal Rápido para Registrar Hallazgo desde Evaluación -->
-  <div id="quick-hallazgo-modal" class="fixed inset-0 z-50 bg-slate-900/60 hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
-    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden">
-      <div class="bg-[#003366] text-white px-5 py-4 flex items-center justify-between">
+  <div id="quick-hallazgo-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden">
+      <div class="bg-[#0F172A] text-white px-5 py-4 flex items-center justify-between">
         <h2 id="qh-modal-title" class="font-bold text-base">Registrar Hallazgo para el Control</h2>
         <button type="button" id="qh-close" class="text-white/80 hover:text-white p-1 flex items-center justify-center" aria-label="Cerrar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
       </div>
