@@ -19,6 +19,11 @@ export async function bootstrap() {
   });
   if (!ctx) return;
 
+  const adminBanner = document.getElementById('admin-quick-banner');
+  if (adminBanner) {
+    adminBanner.classList.toggle('hidden', ctx.user?.rol !== 'admin');
+  }
+
   await loadDashboard(ctx.activeAuditId);
 }
 

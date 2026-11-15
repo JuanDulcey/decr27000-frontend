@@ -6,9 +6,11 @@
 import { api } from './api.js';
 import {
   getActiveAuditId,
+  getAuthToken,
   logout,
   requireAuth,
   setActiveAuditId,
+  setSession,
 } from './auth.js';
 import { OFFICIAL_REFERENTES } from './config.js';
 import { icon } from './icons.js';
@@ -30,6 +32,7 @@ const PAGE_CONTROLLERS = {
   'evaluacion.html': './pages/evaluacion.js',
   'hallazgos.html': './pages/hallazgos.js',
   'informe.html': './pages/informe.js',
+  'admin.html': './pages/admin.js',
 };
 
 let shellInitialized = false;
@@ -53,6 +56,18 @@ export async function initLayout({ activeStep = 1, onAuditChange = null } = {}) 
     bindSidebarEvents();
     bindSoftNavigation();
     shellInitialized = true;
+    // Validar sesión real contra el backend (/auth/me) en segundo plano sin bloquear el render inicial
+    api
+      .getMe()
+      .then((meRes) => {
+        if (meRes?.data) {
+          const token = getAuthToken();
+          if (token) setSession(token, meRes.data);
+        }
+      })
+      .catch(() => {
+        // 401 ya redirige desde api.js; errores de red transitorios no cierran la sesión
+      });
   } else {
     setActiveNavStep(activeStep);
   }
@@ -115,12 +130,30 @@ function setActiveNavStep(activeStep) {
   const currentStepObj = STEPS.find((s) => s.step === activeStep);
   const stepLabelEl = document.getElementById('header-step-label');
   const stepBarEl = document.getElementById('header-step-bar');
-  if (stepLabelEl && currentStepObj) {
-    stepLabelEl.textContent = `Etapa ${currentStepObj.step} de ${STEPS.length} · ${currentStepObj.label}`;
+  if (stepLabelEl) {
+    stepLabelEl.textContent =
+      activeStep === 'admin'
+        ? 'Administración del Sistema · Auditores, Usuarios y Asignaciones'
+        : currentStepObj
+          ? `Etapa ${currentStepObj.step} de ${STEPS.length} · ${currentStepObj.label}`
+          : '';
   }
   if (stepBarEl) {
-    const pct = Math.max(0, Math.min(100, (activeStep / STEPS.length) * 100));
+    const pct =
+      activeStep === 'admin' ? 100 : Math.max(0, Math.min(100, (Number(activeStep) / STEPS.length) * 100));
     stepBarEl.style.width = `${pct}%`;
+  }
+
+  const adminLink = document.querySelector('#app-sidebar nav a[data-step="admin"]');
+  if (adminLink) {
+    const isAdminActive = activeStep === 'admin';
+    adminLink.className = `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium min-h-[44px] transition-all ${
+      isAdminActive
+        ? 'bg-gradient-to-r from-[#007BFF] to-[#10B981] text-white font-semibold shadow-md shadow-[#007BFF]/20'
+        : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'
+    }`;
+    if (isAdminActive) adminLink.setAttribute('aria-current', 'page');
+    else adminLink.removeAttribute('aria-current');
   }
 }
 
@@ -280,8 +313,32 @@ function renderShell(user, activeStep) {
     })
     .join('');
 
+  const adminNavHtml =
+    user.rol === 'admin'
+      ? `
+        <div class="space-y-1 pt-2 border-t border-white/10">
+          <div class="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[#10B981]">Administración</div>
+          <a href="admin.html" data-step="admin"
+             class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium min-h-[44px] transition-all ${
+               activeStep === 'admin'
+                 ? 'bg-gradient-to-r from-[#007BFF] to-[#10B981] text-white font-semibold shadow-md shadow-[#007BFF]/20'
+                 : 'text-slate-300 hover:bg-white/[0.07] hover:text-white'
+             }"
+             ${activeStep === 'admin' ? 'aria-current="page"' : ''}>
+            <span class="w-5 flex items-center justify-center shrink-0" aria-hidden="true">${icon('shield', 'w-4 h-4')}</span>
+            <span class="flex-1 truncate">Centro de Administración</span>
+            <span class="text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-emerald-300">Admin</span>
+          </a>
+        </div>
+      `
+      : '';
+
   const currentStepObj = STEPS.find((s) => s.step === activeStep) || STEPS[0];
-  const progressPct = Math.round((currentStepObj.step / STEPS.length) * 100);
+  const progressPct = activeStep === 'admin' ? 100 : Math.round((currentStepObj.step / STEPS.length) * 100);
+  const initialStepLabel =
+    activeStep === 'admin'
+      ? 'Administración del Sistema · Auditores, Usuarios y Asignaciones'
+      : `Etapa ${currentStepObj.step} de ${STEPS.length} · ${currentStepObj.label}`;
 
   const layoutWrapper = document.createElement('div');
   layoutWrapper.className = 'min-h-screen flex flex-col md:flex-row bg-[#F1F5F9]';
@@ -307,6 +364,7 @@ function renderShell(user, activeStep) {
 
         <nav class="mt-4 space-y-4" aria-label="Navegación principal">
           ${navLinksHtml}
+          ${adminNavHtml}
         </nav>
       </div>
 
@@ -363,7 +421,7 @@ function renderShell(user, activeStep) {
         <!-- Barra de progreso del flujo de auditoría -->
         <div class="mt-2.5 flex items-center gap-3">
           <span id="header-step-label" class="text-[11px] font-semibold text-slate-500 whitespace-nowrap">
-            Etapa ${currentStepObj.step} de ${STEPS.length} · ${escapeHtml(currentStepObj.label)}
+            ${escapeHtml(initialStepLabel)}
           </span>
           <div class="flex-1 h-1.5 bg-slate-200/80 rounded-full overflow-hidden">
             <div id="header-step-bar" class="h-full bg-gradient-to-r from-[#007BFF] to-[#10B981] rounded-full transition-all duration-300" style="width: ${progressPct}%"></div>

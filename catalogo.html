@@ -55,6 +55,9 @@
           </div>
 
           <div class="flex flex-col sm:flex-row gap-2">
+            <button type="button" id="btn-new-control" class="btn btn-outline text-xs sm:text-sm hidden">
+              + Nuevo Control ISO
+            </button>
             <button type="button" id="btn-save-selection" class="btn btn-primary text-xs sm:text-sm">
               Guardar Selección y Continuar →
             </button>
@@ -134,6 +137,62 @@
         <div class="pt-3 border-t border-slate-200 flex flex-col-reverse sm:flex-row justify-end gap-2">
           <button type="button" id="modal-ctrl-cancel" class="btn btn-outline text-xs">Cancelar</button>
           <button type="submit" id="modal-ctrl-save" class="btn btn-primary text-xs">Guardar en Catálogo Maestro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Crear Nuevo Control en Catálogo (solo admin — POST /controles) -->
+  <div id="create-control-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden">
+      <div class="bg-[#0F172A] text-white px-5 py-4 flex items-center justify-between">
+        <h2 class="font-bold text-base">Nuevo Control en Catálogo Maestro</h2>
+        <button type="button" id="modal-new-ctrl-close" class="text-white/80 hover:text-white p-1 flex items-center justify-center" aria-label="Cerrar"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      </div>
+      <form id="create-control-form" class="p-5 space-y-3 max-h-[80vh] overflow-y-auto" novalidate>
+        <div id="modal-new-ctrl-alert" class="hidden p-3 rounded-lg bg-[#fbecec] border border-[#D64545] text-[#7f1d1d] text-xs font-bold" role="alert"></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="new-ctrl-codigo" class="block text-xs font-bold text-slate-700 mb-1">Código ISO (ej. 8.35) *</label>
+            <input id="new-ctrl-codigo" type="text" class="form-input text-sm font-mono" placeholder="8.35" required />
+            <p id="error-new-ctrl-codigo" class="field-error hidden"></p>
+          </div>
+          <div>
+            <label for="new-ctrl-categoria" class="block text-xs font-bold text-slate-700 mb-1">Dominio / Categoría *</label>
+            <select id="new-ctrl-categoria" class="form-select text-sm">
+              <option value="ORGANIZACIONAL">5. Organizacional</option>
+              <option value="PERSONAS">6. Personas</option>
+              <option value="FISICO">7. Físico</option>
+              <option value="TECNOLOGICO" selected>8. Tecnológico</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="new-ctrl-nombre" class="block text-xs font-bold text-slate-700 mb-1">Nombre del Control *</label>
+          <input id="new-ctrl-nombre" type="text" maxlength="200" class="form-input text-sm" required />
+          <p id="error-new-ctrl-nombre" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label for="new-ctrl-criterio" class="block text-xs font-bold text-slate-700 mb-1">Criterio Normativo *</label>
+          <textarea id="new-ctrl-criterio" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-new-ctrl-criterio" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label for="new-ctrl-pregunta" class="block text-xs font-bold text-slate-700 mb-1">Pregunta Orientadora *</label>
+          <textarea id="new-ctrl-pregunta" rows="2" class="form-textarea text-sm" required></textarea>
+          <p id="error-new-ctrl-pregunta" class="field-error hidden"></p>
+        </div>
+        <div>
+          <label for="new-ctrl-ejemplo" class="block text-xs font-bold text-slate-700 mb-1">Ejemplo de Aplicación</label>
+          <input id="new-ctrl-ejemplo" type="text" class="form-input text-sm" />
+        </div>
+        <div>
+          <label for="new-ctrl-evidencia" class="block text-xs font-bold text-slate-700 mb-1">Evidencia Sugerida</label>
+          <input id="new-ctrl-evidencia" type="text" class="form-input text-sm" />
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex flex-col-reverse sm:flex-row justify-end gap-2">
+          <button type="button" id="modal-new-ctrl-cancel" class="btn btn-outline text-xs">Cancelar</button>
+          <button type="submit" id="modal-new-ctrl-save" class="btn btn-primary text-xs">Crear Control</button>
         </div>
       </form>
     </div>

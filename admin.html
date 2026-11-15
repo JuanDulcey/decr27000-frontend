@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Centro de Administración — DECR 27000 · AuditSys SGSI</title>
+  <link rel="icon" href="logo.jpg" type="image/jpeg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="bg-[#F1F5F9]">
+  <div id="app-shell">
+    <div id="page-content" class="space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <span class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-[#059669]">
+            Suite de Administración
+          </span>
+          <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Centro de Administración</h1>
+          <p class="text-sm text-slate-600">
+            Gestión de auditores, control de acceso por roles y asignación estratégica de auditorías.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a href="catalogo.html" class="btn btn-outline text-xs sm:text-sm">
+            Gestionar Catálogo ISO 27002 →
+          </a>
+          <button type="button" id="btn-new-user" class="btn btn-primary text-xs sm:text-sm">
+            + Nuevo Auditor / Usuario
+          </button>
+          <button type="button" id="btn-new-audit-admin" class="btn btn-accent text-xs sm:text-sm">
+            + Crear y Asignar Auditoría
+          </button>
+        </div>
+      </div>
+
+      <details class="help-guide px-4 py-3 text-xs text-slate-700">
+        <summary class="flex items-center justify-between gap-2 font-bold text-slate-900">
+          <span class="inline-flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+            Guía rápida del Administrador: Creación de auditores y asignación de auditorías
+          </span>
+          <span class="help-guide-chevron text-slate-400 transition-transform duration-200" aria-hidden="true">▾</span>
+        </summary>
+        <div class="mt-2.5 pt-2.5 border-t border-emerald-200/60 grid grid-cols-1 sm:grid-cols-3 gap-3 text-slate-600">
+          <div><strong class="text-slate-900">1. Alta de Auditores:</strong> Crea cuentas con rol <em>Auditor</em> o <em>Admin</em> y contraseña inicial (mínimo 8 caracteres). Podrán iniciar sesión de inmediato.</div>
+          <div><strong class="text-slate-900">2. Asignación y Reasignación:</strong> Crea nuevas auditorías eligiendo al auditor líder responsable o reasigna auditorías activas que no estén cerradas.</div>
+          <div><strong class="text-slate-900">3. Integridad Referencial:</strong> Un auditor con auditorías asignadas no puede eliminarse hasta reasignar sus auditorías a otro responsable.</div>
+        </div>
+      </details>
+
+      <div id="admin-access-guard" class="hidden"></div>
+      <div id="admin-error-banner" class="hidden"></div>
+
+      <div id="admin-main-content" class="space-y-6">
+        <!-- KPIs Administrativos -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" aria-label="Resumen administrativo">
+          <article class="card card-interactive p-5">
+            <p class="text-xs font-semibold text-slate-500">Auditores Registrados</p>
+            <p id="admin-kpi-auditores" class="text-3xl font-extrabold text-slate-900 mt-1.5 tabular-nums">0</p>
+            <p class="text-xs text-slate-500 mt-1">Con acceso al flujo de evaluación</p>
+          </article>
+          <article class="card card-interactive p-5">
+            <p class="text-xs font-semibold text-slate-500">Administradores SGSI</p>
+            <p id="admin-kpi-admins" class="text-3xl font-extrabold text-slate-900 mt-1.5 tabular-nums">0</p>
+            <p class="text-xs text-slate-500 mt-1">Gestión de catálogo y usuarios</p>
+          </article>
+          <article class="card card-interactive p-5">
+            <p class="text-xs font-semibold text-slate-500">Auditorías Totales</p>
+            <p id="admin-kpi-auditorias" class="text-3xl font-extrabold text-slate-900 mt-1.5 tabular-nums">0</p>
+            <p id="admin-kpi-auditorias-sub" class="text-xs text-slate-500 mt-1">En curso y cerradas</p>
+          </article>
+          <article class="card card-interactive p-5">
+            <p class="text-xs font-semibold text-slate-500">Auditorías Activas</p>
+            <p id="admin-kpi-activas" class="text-3xl font-extrabold text-[#059669] mt-1.5 tabular-nums">0</p>
+            <p class="text-xs text-slate-500 mt-1">Borrador, ejecución o revisión</p>
+          </article>
+        </section>
+
+        <!-- Directorio de Auditores y Usuarios -->
+        <section class="card overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Directorio de Auditores y Usuarios</h2>
+              <p class="text-xs text-slate-500">Administre credenciales, roles y carga de auditorías asignadas.</p>
+            </div>
+          </div>
+          <div id="admin-users-container" class="table-responsive">
+            <div class="p-5 space-y-2" aria-busy="true">
+              <div class="skeleton h-10 w-full"></div>
+              <div class="skeleton h-10 w-full"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Asignación Global de Auditorías -->
+        <section class="card overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Auditorías y Responsables Asignados</h2>
+              <p class="text-xs text-slate-500">Supervise todas las auditorías de la plataforma y reasigne responsables si es necesario.</p>
+            </div>
+          </div>
+          <div id="admin-audits-container" class="table-responsive">
+            <div class="p-5 space-y-2" aria-busy="true">
+              <div class="skeleton h-10 w-full"></div>
+              <div class="skeleton h-10 w-full"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Crear / Editar Usuario -->
+  <div id="admin-user-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden">
+      <div class="bg-[#0F172A] text-white px-5 py-4 flex items-center justify-between">
+        <h2 id="admin-user-modal-title" class="font-bold text-base">Nuevo Auditor / Usuario</h2>
+        <button type="button" id="admin-user-close" class="text-white/80 hover:text-white p-1 flex items-center justify-center" aria-label="Cerrar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <form id="admin-user-form" class="p-5 space-y-3.5" novalidate>
+        <input type="hidden" id="admin-user-id" />
+        <div id="admin-user-alert" class="hidden p-3 rounded-lg bg-[#fbecec] border border-[#D64545] text-[#7f1d1d] text-xs font-semibold" role="alert"></div>
+
+        <div>
+          <label for="u-nombre" class="block text-xs font-bold text-slate-700 mb-1">Nombre completo *</label>
+          <input id="u-nombre" type="text" maxlength="120" class="form-input text-sm" placeholder="Ej. Laura Gómez (Auditora Interna)" required />
+          <p id="error-u-nombre" class="field-error hidden"></p>
+        </div>
+
+        <div>
+          <label for="u-correo" class="block text-xs font-bold text-slate-700 mb-1">Correo institucional *</label>
+          <input id="u-correo" type="email" maxlength="150" class="form-input text-sm" placeholder="laura.gomez@organizacion.com" required />
+          <p id="error-u-correo" class="field-error hidden"></p>
+        </div>
+
+        <div>
+          <label for="u-rol" class="block text-xs font-bold text-slate-700 mb-1">Rol en la plataforma *</label>
+          <select id="u-rol" class="form-select text-sm">
+            <option value="auditor">Auditor (Evalúa controles, evidencias, hallazgos e informes)</option>
+            <option value="admin">Administrador SGSI (Control total + usuarios y catálogo)</option>
+          </select>
+        </div>
+
+        <div id="u-password-group">
+          <label for="u-password" class="block text-xs font-bold text-slate-700 mb-1">Contraseña inicial (mín. 8 caracteres) *</label>
+          <input id="u-password" type="password" minlength="8" maxlength="100" class="form-input text-sm" placeholder="••••••••" />
+          <p id="error-u-password" class="field-error hidden"></p>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" id="admin-user-cancel" class="btn btn-outline text-xs">Cancelar</button>
+          <button type="submit" id="admin-user-save" class="btn btn-primary text-xs">Guardar Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Restablecer Contraseña -->
+  <div id="admin-password-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
+      <div class="bg-[#0F172A] text-white px-5 py-4 flex items-center justify-between">
+        <h2 id="admin-pass-title" class="font-bold text-base">Restablecer Contraseña</h2>
+        <button type="button" id="admin-pass-close" class="text-white/80 hover:text-white p-1 flex items-center justify-center" aria-label="Cerrar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <form id="admin-pass-form" class="p-5 space-y-3.5" novalidate>
+        <input type="hidden" id="admin-pass-user-id" />
+        <p id="admin-pass-subtitle" class="text-xs text-slate-600"></p>
+        <div>
+          <label for="u-new-password" class="block text-xs font-bold text-slate-700 mb-1">Nueva contraseña (mín. 8 caracteres) *</label>
+          <input id="u-new-password" type="password" minlength="8" maxlength="100" class="form-input text-sm" required />
+          <p id="error-u-new-password" class="field-error hidden"></p>
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" id="admin-pass-cancel" class="btn btn-outline text-xs">Cancelar</button>
+          <button type="submit" id="admin-pass-save" class="btn btn-primary text-xs">Actualizar Contraseña</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Crear y Asignar Auditoría -->
+  <div id="admin-audit-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden">
+      <div class="bg-[#0F172A] text-white px-5 py-4 flex items-center justify-between">
+        <h2 class="font-bold text-base">Crear Auditoría y Asignar Auditor Responsable</h2>
+        <button type="button" id="admin-audit-close" class="text-white/80 hover:text-white p-1 flex items-center justify-center" aria-label="Cerrar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <form id="admin-audit-form" class="p-5 space-y-3.5 max-h-[82vh] overflow-y-auto" novalidate>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="aa-organizacion" class="block text-xs font-bold text-slate-700 mb-1">Organización auditada *</label>
+            <input id="aa-organizacion" type="text" maxlength="120" class="form-input text-sm" placeholder="Ej. Corporación Alfa S.A.S." required />
+            <p id="error-aa-organizacion" class="field-error hidden"></p>
+          </div>
+          <div>
+            <label for="aa-auditor" class="block text-xs font-bold text-slate-700 mb-1">Auditor responsable asignado *</label>
+            <select id="aa-auditor" class="form-select text-sm" required></select>
+            <p id="error-aa-auditor" class="field-error hidden"></p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="aa-inicio" class="block text-xs font-bold text-slate-700 mb-1">Fecha de inicio *</label>
+            <input id="aa-inicio" type="date" class="form-input text-sm" required />
+            <p id="error-aa-inicio" class="field-error hidden"></p>
+          </div>
+          <div>
+            <label for="aa-fin" class="block text-xs font-bold text-slate-700 mb-1">Fecha de cierre *</label>
+            <input id="aa-fin" type="date" class="form-input text-sm" required />
+            <p id="error-aa-fin" class="field-error hidden"></p>
+          </div>
+        </div>
+
+        <div>
+          <label for="aa-objetivo" class="block text-xs font-bold text-slate-700 mb-1">Objetivo de la auditoría *</label>
+          <textarea id="aa-objetivo" rows="2" class="form-textarea text-sm" placeholder="Evaluar el nivel de implementación de los controles ISO/IEC 27002:2022..." required></textarea>
+          <p id="error-aa-objetivo" class="field-error hidden"></p>
+        </div>
+
+        <div>
+          <label for="aa-alcance" class="block text-xs font-bold text-slate-700 mb-1">Alcance *</label>
+          <textarea id="aa-alcance" rows="2" class="form-textarea text-sm" placeholder="Infraestructura, procesos críticos, redes y sistemas de información..." required></textarea>
+          <p id="error-aa-alcance" class="field-error hidden"></p>
+        </div>
+
+        <div>
+          <label for="aa-referentes" class="block text-xs font-bold text-slate-700 mb-1">Referentes normativos</label>
+          <input id="aa-referentes" type="text" maxlength="250" class="form-input text-sm" />
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" id="admin-audit-cancel" class="btn btn-outline text-xs">Cancelar</button>
+          <button type="submit" id="admin-audit-save" class="btn btn-primary text-xs">Crear y Asignar Auditoría</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Reasignar Auditor -->
+  <div id="admin-reassign-modal" class="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden">
+      <div class="bg-[#0F172A] text-white px-5 py-4 flex items-center justify-between">
+        <h2 class="font-bold text-base">Reasignar Auditor Responsable</h2>
+        <button type="button" id="admin-reassign-close" class="text-white/80 hover:text-white p-1 flex items-center justify-center" aria-label="Cerrar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+      </div>
+      <form id="admin-reassign-form" class="p-5 space-y-3.5" novalidate>
+        <input type="hidden" id="reassign-audit-id" />
+        <p id="reassign-audit-label" class="text-xs font-semibold text-slate-700"></p>
+        <div>
+          <label for="reassign-auditor-select" class="block text-xs font-bold text-slate-700 mb-1">Nuevo auditor responsable *</label>
+          <select id="reassign-auditor-select" class="form-select text-sm" required></select>
+        </div>
+        <div class="pt-3 border-t border-slate-200 flex justify-end gap-2">
+          <button type="button" id="admin-reassign-cancel" class="btn btn-outline text-xs">Cancelar</button>
+          <button type="submit" id="admin-reassign-save" class="btn btn-primary text-xs">Guardar Reasignación</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/admin.js"></script>
+</body>
+</html>

@@ -99,4 +99,38 @@ test.describe('AuditSys SGSI — Pruebas Integrales E2E', () => {
     const box = await menuBtn.boundingBox();
     expect(box.height).toBeGreaterThanOrEqual(44);
   });
+
+  test('Suite Admin: restricción por rol, alta de auditor y creación de auditoría asignada', async ({
+    page,
+  }) => {
+    await loginAs(page, 'ana.auditora@auditsys.edu.co');
+    await page.goto('/admin.html');
+    await expect(page.locator('#admin-access-guard')).toContainText('Acceso Restringido');
+
+    await page.evaluate(() => localStorage.clear());
+    await page.goto('/login.html');
+    await loginAs(page, 'admin@auditsys.edu.co');
+    await expect(page.locator('#admin-quick-banner')).toBeVisible();
+    await page.goto('/admin.html');
+
+    await page.click('#btn-new-user');
+    await page.fill('#u-nombre', 'Laura Gómez');
+    await page.fill('#u-correo', 'laura.gomez@auditsys.edu.co');
+    await page.selectOption('#u-rol', 'auditor');
+    await page.fill('#u-password', 'ClaveSegura2026*');
+    await page.click('#admin-user-save');
+    await expect(page.locator('#admin-users-container')).toContainText('Laura Gómez');
+
+    await page.click('#btn-new-audit-admin');
+    await page.fill('#aa-organizacion', 'Financiera Norte S.A.');
+    const lauraOpt = await page
+      .locator('#aa-auditor option', { hasText: 'Laura Gómez' })
+      .getAttribute('value');
+    await page.selectOption('#aa-auditor', lauraOpt);
+    await page.fill('#aa-objetivo', 'Auditoría de controles tecnológicos.');
+    await page.fill('#aa-alcance', 'Core financiero.');
+    await page.click('#admin-audit-save');
+    await expect(page.locator('#admin-audits-container')).toContainText('Financiera Norte S.A.');
+    await expect(page.locator('#admin-audits-container')).toContainText('Laura Gómez');
+  });
 });

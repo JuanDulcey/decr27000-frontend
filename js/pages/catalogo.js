@@ -36,6 +36,8 @@ export async function bootstrap() {
   isClosedAudit = ctx.activeAudit?.estado === 'CERRADA';
   isAdminUser = ctx.user?.rol === 'admin';
 
+  document.getElementById('btn-new-control')?.classList.toggle('hidden', !isAdminUser);
+
   bindEvents();
   await Promise.all([loadAllControls(), loadSelectionForAudit(activeAuditId)]);
   renderControls();
@@ -93,6 +95,44 @@ function bindEvents() {
   });
 
   document.getElementById('btn-save-selection')?.addEventListener('click', saveSelection);
+
+  const createModal = document.getElementById('create-control-modal');
+  const createForm = document.getElementById('create-control-form');
+  document.getElementById('btn-new-control')?.addEventListener('click', () => {
+    createForm?.reset();
+    document.getElementById('modal-new-ctrl-alert')?.classList.add('hidden');
+    openModal(createModal, '#new-ctrl-codigo');
+  });
+  document.getElementById('modal-new-ctrl-close')?.addEventListener('click', () => closeModal(createModal));
+  document.getElementById('modal-new-ctrl-cancel')?.addEventListener('click', () => closeModal(createModal));
+  createForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const alertBox = document.getElementById('modal-new-ctrl-alert');
+    alertBox?.classList.add('hidden');
+    const payload = {
+      codigo_iso: document.getElementById('new-ctrl-codigo').value.trim(),
+      categoria: document.getElementById('new-ctrl-categoria').value,
+      nombre: document.getElementById('new-ctrl-nombre').value.trim(),
+      criterio: document.getElementById('new-ctrl-criterio').value.trim(),
+      pregunta_orientadora: document.getElementById('new-ctrl-pregunta').value.trim(),
+      ejemplo_aplicacion: document.getElementById('new-ctrl-ejemplo').value.trim(),
+      evidencia_sugerida: document.getElementById('new-ctrl-evidencia').value.trim(),
+    };
+    try {
+      const res = await api.createControlCatalogo(payload);
+      showToast(res?.message || 'Control creado en el catálogo maestro.', 'success');
+      closeModal(createModal);
+      await loadAllControls();
+      renderControls();
+    } catch (err) {
+      if (alertBox) {
+        alertBox.textContent = err.message;
+        alertBox.classList.remove('hidden');
+      } else {
+        showToast(err.message, 'error');
+      }
+    }
+  });
 
   const modal = document.getElementById('edit-control-modal');
   const closeEditModal = () => closeModal(modal);

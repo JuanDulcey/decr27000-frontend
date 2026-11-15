@@ -127,6 +127,16 @@ export const api = {
 
   getUsuarios: () => request('GET', '/usuarios'),
 
+  createUsuario: (payload) => request('POST', '/usuarios', payload),
+
+  updateUsuario: (id, payload) =>
+    request('PUT', `/usuarios/${encodeURIComponent(id)}`, payload),
+
+  resetUsuarioPassword: (id, password) =>
+    request('PATCH', `/usuarios/${encodeURIComponent(id)}/password`, { password }),
+
+  deleteUsuario: (id) => request('DELETE', `/usuarios/${encodeURIComponent(id)}`),
+
   getDashboard: (idAuditoria) => {
     const query = idAuditoria ? `?id_auditoria=${encodeURIComponent(idAuditoria)}` : '';
     return request('GET', `/dashboard${query}`);
@@ -158,6 +168,8 @@ export const api = {
     const qs = sp.toString();
     return request('GET', `/controles${qs ? `?${qs}` : ''}`);
   },
+
+  createControlCatalogo: (payload) => request('POST', '/controles', payload),
 
   updateControlCatalogo: (id, payload) =>
     request('PUT', `/controles/${encodeURIComponent(id)}`, payload),
@@ -193,6 +205,9 @@ export const api = {
 
   createRecomendacion: (idHallazgo, payload) =>
     request('POST', `/hallazgos/${encodeURIComponent(idHallazgo)}/recomendaciones`, payload),
+
+  updateRecomendacion: (idRec, payload) =>
+    request('PUT', `/recomendaciones/${encodeURIComponent(idRec)}`, payload),
 
   deleteRecomendacion: (idRec) =>
     request('DELETE', `/recomendaciones/${encodeURIComponent(idRec)}`),

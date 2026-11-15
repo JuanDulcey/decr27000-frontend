@@ -261,12 +261,63 @@ export async function installApiMock(page) {
       });
     }
 
+    if (method === 'GET' && path === '/auth/me') {
+      const user = isAdmin ? usuarios.find((u) => u.rol === 'admin') : usuarios[0];
+      return json(200, { ok: true, data: user });
+    }
+
     if (method === 'GET' && path === '/usuarios') {
       return json(200, { ok: true, data: usuarios });
     }
 
+    if (method === 'POST' && path === '/usuarios') {
+      if (!isAdmin) return json(403, { ok: false, error: 'Solo el Administrador SGSI puede gestionar usuarios.' });
+      const nextId = usuarios.length + 1;
+      const created = {
+        id_usuario: nextId,
+        nombre: body.nombre,
+        correo: String(body.correo || '').toLowerCase(),
+        rol: body.rol || 'auditor',
+        auditorias_asignadas: 0,
+      };
+      usuarios.push(created);
+      return json(201, { ok: true, data: created, message: `Usuario "${created.nombre}" creado.` });
+    }
+
+    if (method === 'PUT' && /^\/usuarios\/\d+$/.test(path)) {
+      if (!isAdmin) return json(403, { ok: false, error: 'Solo el Administrador SGSI puede gestionar usuarios.' });
+      const id = Number(path.split('/')[2]);
+      const idx = usuarios.findIndex((u) => u.id_usuario === id);
+      if (idx === -1) return json(404, { ok: false, error: 'Usuario no encontrado.' });
+      usuarios[idx] = { ...usuarios[idx], nombre: body.nombre, correo: body.correo, rol: body.rol };
+      return json(200, { ok: true, data: usuarios[idx], message: 'Usuario actualizado.' });
+    }
+
+    if (method === 'PATCH' && /^\/usuarios\/\d+\/password$/.test(path)) {
+      if (!isAdmin) return json(403, { ok: false, error: 'Solo el Administrador SGSI puede gestionar usuarios.' });
+      return json(200, { ok: true, message: 'Contraseña actualizada.' });
+    }
+
+    if (method === 'DELETE' && /^\/usuarios\/\d+$/.test(path)) {
+      if (!isAdmin) return json(403, { ok: false, error: 'Solo el Administrador SGSI puede gestionar usuarios.' });
+      const id = Number(path.split('/')[2]);
+      const idx = usuarios.findIndex((u) => u.id_usuario === id);
+      if (idx !== -1) usuarios.splice(idx, 1);
+      return json(200, { ok: true, message: 'Usuario eliminado.' });
+    }
+
     if (method === 'GET' && path === '/controles') {
       return json(200, { ok: true, data: controles });
+    }
+
+    if (method === 'POST' && path === '/controles') {
+      if (!isAdmin) {
+        return json(403, { ok: false, error: 'Solo el Administrador SGSI puede crear controles.' });
+      }
+      const nextId = controles.length + 1;
+      const created = { id_control: nextId, ...body };
+      controles.push(created);
+      return json(201, { ok: true, data: created, message: 'Control creado.' });
     }
 
     if (method === 'PUT' && /^\/controles\/\d+$/.test(path)) {
@@ -282,14 +333,29 @@ export async function installApiMock(page) {
 
     if (method === 'POST' && path === '/auditorias') {
       const nextId = auditorias.length + 1;
+      const assigned = usuarios.find((u) => u.id_usuario === Number(body?.id_auditor));
       const created = {
         id_auditoria: nextId,
         ...body,
         estado: 'BORRADOR',
-        auditor_nombre: 'Ana Rodríguez',
+        auditor_nombre: assigned?.nombre || 'Ana Rodríguez',
       };
       auditorias.push(created);
       return json(201, { ok: true, data: created, message: 'Auditoría creada.' });
+    }
+
+    if (method === 'PUT' && /^\/auditorias\/\d+$/.test(path)) {
+      const id = Number(path.split('/')[2]);
+      const idx = auditorias.findIndex((a) => a.id_auditoria === id);
+      if (idx !== -1) {
+        const assigned = usuarios.find((u) => u.id_usuario === Number(body?.id_auditor));
+        auditorias[idx] = {
+          ...auditorias[idx],
+          ...body,
+          auditor_nombre: assigned?.nombre || auditorias[idx].auditor_nombre,
+        };
+      }
+      return json(200, { ok: true, data: auditorias[idx], message: 'Auditoría actualizada.' });
     }
 
     if (method === 'GET' && /^\/auditorias\/\d+$/.test(path)) {

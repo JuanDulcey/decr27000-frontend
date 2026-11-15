@@ -446,9 +446,14 @@ function renderHallazgosList() {
                 ${
                   isClosed
                     ? ''
-                    : `<button type="button" data-del-rec="${escapeHtml(
-                        r.id_recomendacion
-                      )}" class="btn btn-ghost text-xs text-[#D64545] shrink-0">Eliminar</button>`
+                    : `<div class="flex items-center gap-1 shrink-0">
+                        <button type="button" data-edit-rec="${escapeHtml(
+                          r.id_recomendacion
+                        )}" class="btn btn-outline text-xs py-1 px-2 inline-flex items-center gap-1">${icon('edit', 'w-3 h-3')} Editar</button>
+                        <button type="button" data-del-rec="${escapeHtml(
+                          r.id_recomendacion
+                        )}" class="btn btn-ghost text-xs text-[#D64545]">Eliminar</button>
+                      </div>`
                 }
               </div>
             `
@@ -533,6 +538,58 @@ function renderHallazgosList() {
       document.getElementById('m-rec-resp').value = 'Líder de TI / Seguridad';
       const modal = document.getElementById('add-rec-modal');
       openModal(modal, '#m-rec-desc');
+    });
+  });
+
+  const editRecModal = document.getElementById('edit-rec-modal');
+  const editRecForm = document.getElementById('edit-rec-form');
+  if (editRecForm && !editRecForm.dataset.boundSubmit) {
+    editRecForm.dataset.boundSubmit = '1';
+    attachLiveValidationClear(editRecForm);
+    document.getElementById('edit-rec-close')?.addEventListener('click', () => closeModal(editRecModal));
+    document.getElementById('edit-rec-cancel')?.addEventListener('click', () => closeModal(editRecModal));
+    editRecForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearAllFieldErrors(editRecForm);
+      const idRec = Number(document.getElementById('edit-rec-id').value);
+      const descripcion = document.getElementById('edit-rec-desc').value.trim();
+      const prioridad = document.getElementById('edit-rec-prio').value;
+      const plazo_dias = Number(document.getElementById('edit-rec-plazo').value) || 60;
+      const responsable_sug = document.getElementById('edit-rec-resp').value.trim();
+      if (!descripcion) {
+        setFieldError('edit-rec-desc', 'La descripción de la recomendación es obligatoria.');
+        return;
+      }
+      try {
+        await api.updateRecomendacion(idRec, { descripcion, prioridad, plazo_dias, responsable_sug });
+        showToast('Recomendación actualizada correctamente.', 'success');
+        closeModal(editRecModal);
+        await refreshAll();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }
+
+  container.querySelectorAll('[data-edit-rec]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const idRec = Number(btn.getAttribute('data-edit-rec'));
+      let found = null;
+      for (const h of hallazgos) {
+        const match = (h.recomendaciones || []).find((r) => r.id_recomendacion === idRec);
+        if (match) {
+          found = match;
+          break;
+        }
+      }
+      if (!found) return;
+      clearAllFieldErrors(editRecForm);
+      document.getElementById('edit-rec-id').value = String(found.id_recomendacion);
+      document.getElementById('edit-rec-desc').value = found.descripcion || '';
+      document.getElementById('edit-rec-prio').value = found.prioridad || 'MEDIA';
+      document.getElementById('edit-rec-plazo').value = String(found.plazo_dias || 60);
+      document.getElementById('edit-rec-resp').value = found.responsable_sug || 'Líder de TI / Seguridad';
+      openModal(editRecModal, '#edit-rec-desc');
     });
   });
 
