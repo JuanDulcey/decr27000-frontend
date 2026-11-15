@@ -13,6 +13,7 @@ import {
   setSession,
 } from './auth.js';
 import { OFFICIAL_REFERENTES } from './config.js';
+import { confirmLeaveIfDirty, setDirty } from './dirty-guard.js';
 import { icon } from './icons.js';
 import { escapeHtml, renderAuditStateBadge, showToast } from './ui.js';
 
@@ -97,6 +98,11 @@ export async function initLayout({ activeStep = 1, onAuditChange = null } = {}) 
     selector.addEventListener('change', (e) => {
       const nextId = Number(e.target.value);
       if (!nextId) return;
+      if (!confirmLeaveIfDirty()) {
+        selector.value = String(getActiveAuditId() || '');
+        return;
+      }
+      setDirty(false);
       setActiveAuditId(nextId);
       const nextAudit = cachedAuditorias.find((a) => a.id_auditoria === nextId) || null;
       updateAuditStatusBadge(nextAudit);
@@ -188,6 +194,9 @@ export async function navigateTo(url, { pushState = true } = {}) {
   const targetUrl = new URL(url, window.location.href);
   const basename = getPageBasename(targetUrl);
   const controllerPath = PAGE_CONTROLLERS[basename];
+
+  if (!confirmLeaveIfDirty()) return;
+  setDirty(false);
 
   if (targetUrl.origin !== window.location.origin || !controllerPath) {
     window.location.href = targetUrl.href;
@@ -429,6 +438,10 @@ function renderShell(user, activeStep) {
         </div>
       </header>
 
+      <div id="offline-banner" role="alert" class="hidden bg-amber-50 border-b border-amber-200 text-amber-900 px-4 sm:px-6 py-2 text-xs sm:text-sm font-medium flex items-center gap-2">
+        <span>Sin conexión a internet. Los cambios no podrán guardarse hasta restablecer la red.</span>
+      </div>
+
       <!-- Contenido de la Página -->
       <main id="app-main" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
       </main>
@@ -476,6 +489,22 @@ function bindSidebarEvents() {
 
   const logoutBtn = document.getElementById('btn-logout');
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
+
+  bindConnectivityBanner();
+}
+
+function bindConnectivityBanner() {
+  const syncBanner = () => {
+    const banner = document.getElementById('offline-banner');
+    if (!banner) return;
+    banner.classList.toggle('hidden', navigator.onLine);
+  };
+  syncBanner();
+  if (!window.__offlineBannerBound) {
+    window.__offlineBannerBound = true;
+    window.addEventListener('online', syncBanner);
+    window.addEventListener('offline', syncBanner);
+  }
 }
 
 export function populateAuditSelector(auditorias, activeAudit) {

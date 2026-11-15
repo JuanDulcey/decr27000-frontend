@@ -3,6 +3,7 @@
  */
 
 import { api } from '../api.js';
+import { downloadCsv } from '../csv.js';
 import { icon } from '../icons.js';
 import { initLayout, populateAuditSelector } from '../layout.js';
 import {
@@ -27,9 +28,13 @@ let evaluaciones = [];
 let hallazgos = [];
 let trazabilidadRows = [];
 let trazFilter = 'ALL';
+let hallSearch = '';
+let hallSevFilter = 'ALL';
 
 export async function bootstrap() {
   trazFilter = 'ALL';
+  hallSearch = '';
+  hallSevFilter = 'ALL';
   const ctx = await initLayout({
     activeStep: 5,
     onAuditChange: async (nextId, nextAudit) => {
@@ -266,6 +271,27 @@ function bindFormsAndFilters() {
   });
 
   document.getElementById('btn-export-traz-csv')?.addEventListener('click', exportTrazabilidadCsv);
+
+  document.getElementById('hall-search')?.addEventListener('input', (e) => {
+    hallSearch = e.target.value.trim().toLowerCase();
+    renderHallazgosList();
+  });
+
+  document.querySelectorAll('[data-hall-sev-filter]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      hallSevFilter = btn.getAttribute('data-hall-sev-filter') || 'ALL';
+      document.querySelectorAll('[data-hall-sev-filter]').forEach((b) => {
+        const active = b.getAttribute('data-hall-sev-filter') === hallSevFilter;
+        b.classList.toggle('bg-indigo-600', active);
+        b.classList.toggle('text-white', active);
+        b.classList.toggle('border-indigo-600', active);
+        b.classList.toggle('bg-white', !active);
+        b.classList.toggle('text-slate-600', !active);
+        b.classList.toggle('border-slate-300', !active);
+      });
+      renderHallazgosList();
+    });
+  });
 }
 
 function exportTrazabilidadCsv() {
@@ -273,7 +299,6 @@ function exportTrazabilidadCsv() {
     showToast('No hay filas de trazabilidad para exportar.', 'warning');
     return;
   }
-  const csvEscape = (val) => `"${String(val ?? '').replace(/"/g, '""')}"`;
   const headers = [
     'Control ISO',
     'Nombre del Control',
@@ -286,35 +311,19 @@ function exportTrazabilidadCsv() {
     'Plazo (dias)',
     'Responsable',
   ];
-  const lines = [
-    headers.map(csvEscape).join(','),
-    ...trazabilidadRows.map((r) =>
-      [
-        r.codigo_iso,
-        r.control_nombre,
-        r.estado,
-        r.codigo_evidencia || 'Sin evidencia',
-        r.hallazgo_codigo || 'Sin hallazgo',
-        r.severidad || '',
-        r.recomendacion_descripcion || '',
-        r.prioridad || '',
-        r.plazo_dias ?? '',
-        r.responsable || '',
-      ]
-        .map(csvEscape)
-        .join(',')
-    ),
-  ];
-
-  const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = `trazabilidad-auditoria-${activeAuditId || 'sgsi'}.csv`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
+  const rows = trazabilidadRows.map((r) => [
+    r.codigo_iso,
+    r.control_nombre,
+    r.estado,
+    r.codigo_evidencia || 'Sin evidencia',
+    r.hallazgo_codigo || 'Sin hallazgo',
+    r.severidad || '',
+    r.recomendacion_descripcion || '',
+    r.prioridad || '',
+    r.plazo_dias ?? '',
+    r.responsable || '',
+  ]);
+  downloadCsv(`trazabilidad-auditoria-${activeAuditId || 'sgsi'}.csv`, headers, rows);
   showToast('Matriz de trazabilidad exportada a CSV.', 'success');
 }
 
@@ -418,7 +427,26 @@ function renderHallazgosList() {
     return;
   }
 
-  container.innerHTML = hallazgos
+  const filtered = hallazgos.filter((h) => {
+    if (hallSevFilter !== 'ALL' && h.severidad !== hallSevFilter) return false;
+    if (!hallSearch) return true;
+    const text = [h.codigo_hallazgo, h.codigo_iso, h.control_nombre, h.descripcion, h.severidad]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return text.includes(hallSearch);
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="card p-6 text-center text-sm text-slate-500">
+        Ningún hallazgo coincide con el filtro actual.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered
     .map((h) => {
       const recs = h.recomendaciones || [];
       const recsHtml =

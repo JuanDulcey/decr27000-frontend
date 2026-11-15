@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Centro de Administración — DECR 27000 · AuditSys SGSI</title>
   <link rel="icon" href="logo.jpg" type="image/jpeg" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/tailwind.css" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body class="bg-[#F1F5F9]">
@@ -79,10 +79,19 @@
 
         <!-- Directorio de Auditores y Usuarios -->
         <section class="card overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="px-5 py-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <h2 class="text-base font-bold text-slate-900">Directorio de Auditores y Usuarios</h2>
               <p class="text-xs text-slate-500">Administre credenciales, roles y carga de auditorías asignadas.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <input id="admin-users-search" type="search" class="form-input text-xs min-h-[38px] w-full sm:w-52"
+                placeholder="Buscar nombre o correo..." aria-label="Buscar usuarios" />
+              <select id="admin-users-role-filter" class="form-select text-xs min-h-[38px] w-auto" aria-label="Filtrar por rol">
+                <option value="TODOS">Todos los roles</option>
+                <option value="auditor">Solo Auditores</option>
+                <option value="admin">Solo Admins</option>
+              </select>
             </div>
           </div>
           <div id="admin-users-container" class="table-responsive">
@@ -95,10 +104,21 @@
 
         <!-- Asignación Global de Auditorías -->
         <section class="card overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="px-5 py-4 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <h2 class="text-base font-bold text-slate-900">Auditorías y Responsables Asignados</h2>
               <p class="text-xs text-slate-500">Supervise todas las auditorías de la plataforma y reasigne responsables si es necesario.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <input id="admin-audits-search" type="search" class="form-input text-xs min-h-[38px] w-full sm:w-52"
+                placeholder="Buscar organización o auditor..." aria-label="Buscar auditorías" />
+              <select id="admin-audits-state-filter" class="form-select text-xs min-h-[38px] w-auto" aria-label="Filtrar por estado">
+                <option value="TODOS">Todos los estados</option>
+                <option value="BORRADOR">Borrador</option>
+                <option value="EN_EJECUCION">En Ejecución</option>
+                <option value="EN_REVISION">En Revisión</option>
+                <option value="CERRADA">Cerrada</option>
+              </select>
             </div>
           </div>
           <div id="admin-audits-container" class="table-responsive">

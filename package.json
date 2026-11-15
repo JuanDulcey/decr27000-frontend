@@ -8,15 +8,18 @@
   "scripts": {
     "dev": "serve . -l 3000",
     "start": "serve . -l 3000",
+    "build:css": "tailwindcss -i css/tailwind.input.css -o css/tailwind.css --minify",
     "lint": "eslint js/ e2e/",
     "format": "prettier --write \"**/*.{html,css,js,json,md}\"",
     "test:e2e": "playwright test --config=e2e/playwright.config.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",
+    "@tailwindcss/cli": "^4.3.5",
     "eslint": "^9.14.0",
     "globals": "^15.12.0",
     "prettier": "^3.3.3",
-    "serve": "^14.2.4"
+    "serve": "^14.2.4",
+    "tailwindcss": "^4.3.5"
   }
 }

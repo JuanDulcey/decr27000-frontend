@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Evaluación y Evidencias — DECR 27000 · AuditSys SGSI</title>
   <link rel="icon" href="logo.jpg" type="image/jpeg" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/tailwind.css" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body class="bg-[#F1F5F9]">
@@ -18,9 +18,14 @@
             Evalúe cada control seleccionado, registre su observación y adjunte las evidencias correspondientes.
           </p>
         </div>
-        <a href="hallazgos.html" class="btn btn-outline text-xs sm:text-sm">
-          Ir a Hallazgos y Acciones →
-        </a>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" id="btn-export-eval-csv" class="btn btn-outline text-xs sm:text-sm">
+            Exportar CSV
+          </button>
+          <a href="hallazgos.html" class="btn btn-outline text-xs sm:text-sm">
+            Ir a Hallazgos y Acciones →
+          </a>
+        </div>
       </div>
 
       <details class="help-guide px-4 py-3 text-xs text-slate-700">

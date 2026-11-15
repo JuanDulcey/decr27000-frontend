@@ -3,6 +3,8 @@
  */
 
 import { api } from '../api.js';
+import { downloadCsv } from '../csv.js';
+import { setDirty } from '../dirty-guard.js';
 import { formatDate } from '../format.js';
 import { icon } from '../icons.js';
 import { initLayout } from '../layout.js';
@@ -38,12 +40,15 @@ export async function bootstrap() {
   activeEvalId = null;
   selectedStateDraft = null;
   hasUnsavedChanges = false;
+  setDirty(false);
   const ctx = await initLayout({
     activeStep: 4,
     onAuditChange: async (nextId, nextAudit) => {
       activeAuditId = nextId;
       isClosedAudit = nextAudit?.estado === 'CERRADA';
       activeEvalId = null;
+      hasUnsavedChanges = false;
+      setDirty(false);
       await loadEvaluaciones();
     },
   });
@@ -54,7 +59,37 @@ export async function bootstrap() {
 
   bindQuickHallazgoModal();
   bindKeyboardNavigation();
+  document.getElementById('btn-export-eval-csv')?.addEventListener('click', exportEvaluacionesCsv);
   await loadEvaluaciones();
+}
+
+function exportEvaluacionesCsv() {
+  if (!evaluaciones || evaluaciones.length === 0) {
+    showToast('No hay controles evaluados para exportar.', 'warning');
+    return;
+  }
+  const headers = [
+    'Codigo ISO',
+    'Dominio',
+    'Control',
+    'Estado',
+    'Observacion',
+    'Justificacion N/A',
+    'Evidencias',
+    'Fecha Evaluacion',
+  ];
+  const rows = evaluaciones.map((ev) => [
+    ev.codigo_iso,
+    ev.dominio || '',
+    ev.control_nombre || '',
+    ev.estado || 'PENDIENTE',
+    ev.observacion || '',
+    ev.justificacion_na || '',
+    Array.isArray(ev.evidencias) ? ev.evidencias.length : 0,
+    ev.fecha_evaluacion || '',
+  ]);
+  downloadCsv(`evaluacion-controles-auditoria-${activeAuditId || 'sgsi'}.csv`, headers, rows);
+  showToast('Evaluación exportada a CSV.', 'success');
 }
 
 async function loadEvaluaciones() {
@@ -449,6 +484,7 @@ function bindDetailPanelEvents(ev) {
     btn.addEventListener('click', () => {
       selectedStateDraft = btn.getAttribute('data-state-choice');
       hasUnsavedChanges = true;
+      setDirty(true);
       document.querySelectorAll('[data-state-choice]').forEach((b) => {
         const st = b.getAttribute('data-state-choice');
         b.className = `state-card-btn ${st === selectedStateDraft ? `selected-${st}` : ''}`;
@@ -461,9 +497,11 @@ function bindDetailPanelEvents(ev) {
 
   document.getElementById('observacion')?.addEventListener('input', () => {
     hasUnsavedChanges = true;
+    setDirty(true);
   });
   document.getElementById('justificacion_na')?.addEventListener('input', () => {
     hasUnsavedChanges = true;
+    setDirty(true);
   });
 
   const handleSaveEvaluation = async (advanceToNext = false) => {
@@ -487,6 +525,7 @@ function bindDetailPanelEvents(ev) {
       if (btnNext) btnNext.disabled = true;
       const res = await api.updateEvaluacion(ev.id_evaluacion, payload);
       hasUnsavedChanges = false;
+      setDirty(false);
       showToast(res?.message || 'Evaluación guardada.', 'success');
 
       if (advanceToNext) {

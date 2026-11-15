@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hallazgos y Acciones — DECR 27000 · AuditSys SGSI</title>
   <link rel="icon" href="logo.jpg" type="image/jpeg" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/tailwind.css" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body class="bg-[#F1F5F9]">
@@ -162,7 +162,19 @@
 
       <!-- Listado de Tarjetas de Hallazgos -->
       <section class="space-y-3">
-        <h2 class="text-lg font-extrabold text-[#003366]">Hallazgos Documentados</h2>
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <h2 class="text-lg font-extrabold text-slate-900">Hallazgos Documentados</h2>
+          <div class="flex flex-wrap items-center gap-2">
+            <input id="hall-search" type="search" class="form-input text-xs min-h-[38px] w-full sm:w-52"
+              placeholder="Buscar código, control o texto..." aria-label="Buscar hallazgos" />
+            <div class="flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por severidad">
+              <button type="button" data-hall-sev-filter="TODAS" class="btn btn-primary text-xs py-1 px-2.5 min-h-[36px]">Todas</button>
+              <button type="button" data-hall-sev-filter="ALTA" class="btn btn-outline text-xs py-1 px-2.5 min-h-[36px]">ALTA</button>
+              <button type="button" data-hall-sev-filter="MEDIA" class="btn btn-outline text-xs py-1 px-2.5 min-h-[36px]">MEDIA</button>
+              <button type="button" data-hall-sev-filter="BAJA" class="btn btn-outline text-xs py-1 px-2.5 min-h-[36px]">BAJA</button>
+            </div>
+          </div>
+        </div>
         <div id="hallazgos-list" class="space-y-4">
           <div class="card p-6 text-center text-sm text-slate-500">Cargando hallazgos...</div>
         </div>

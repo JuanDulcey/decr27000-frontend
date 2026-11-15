@@ -21,8 +21,16 @@ import { attachLiveValidationClear, clearAllFieldErrors, setFieldError } from '.
 let currentUser = null;
 let usersList = [];
 let auditsList = [];
+let usersSearch = '';
+let usersRoleFilter = 'ALL';
+let auditsSearch = '';
+let auditsStateFilter = 'ALL';
 
 export async function bootstrap() {
+  usersSearch = '';
+  usersRoleFilter = 'ALL';
+  auditsSearch = '';
+  auditsStateFilter = 'ALL';
   const ctx = await initLayout({
     activeStep: 'admin',
     onAuditChange: async () => {
@@ -54,8 +62,28 @@ export async function bootstrap() {
     return;
   }
 
+  bindAdminFilters();
   bindAdminModals();
   await loadAdminData();
+}
+
+function bindAdminFilters() {
+  document.getElementById('admin-users-search')?.addEventListener('input', (e) => {
+    usersSearch = e.target.value.trim().toLowerCase();
+    renderUsersTable();
+  });
+  document.getElementById('admin-users-role-filter')?.addEventListener('change', (e) => {
+    usersRoleFilter = e.target.value || 'ALL';
+    renderUsersTable();
+  });
+  document.getElementById('admin-audits-search')?.addEventListener('input', (e) => {
+    auditsSearch = e.target.value.trim().toLowerCase();
+    renderAuditsTable();
+  });
+  document.getElementById('admin-audits-state-filter')?.addEventListener('change', (e) => {
+    auditsStateFilter = e.target.value || 'ALL';
+    renderAuditsTable();
+  });
 }
 
 async function loadAdminData() {
@@ -117,7 +145,18 @@ function renderUsersTable() {
     return;
   }
 
-  const rows = usersList
+  const filteredUsers = usersList.filter((u) => {
+    if (usersRoleFilter !== 'ALL' && u.rol !== usersRoleFilter) return false;
+    if (!usersSearch) return true;
+    return [u.nombre, u.correo, u.rol].filter(Boolean).join(' ').toLowerCase().includes(usersSearch);
+  });
+
+  if (filteredUsers.length === 0) {
+    container.innerHTML = '<div class="p-6 text-center text-sm text-slate-500">Ningún usuario coincide con el filtro actual.</div>';
+    return;
+  }
+
+  const rows = filteredUsers
     .map((u) => {
       const isSelf = u.id_usuario === currentUser?.id_usuario;
       const rolePill =
@@ -191,7 +230,18 @@ function renderAuditsTable() {
     return;
   }
 
-  const rows = auditsList
+  const filteredAudits = auditsList.filter((a) => {
+    if (auditsStateFilter !== 'ALL' && a.estado !== auditsStateFilter) return false;
+    if (!auditsSearch) return true;
+    return [a.organizacion, a.auditor_nombre, a.estado].filter(Boolean).join(' ').toLowerCase().includes(auditsSearch);
+  });
+
+  if (filteredAudits.length === 0) {
+    container.innerHTML = '<div class="p-6 text-center text-sm text-slate-500">Ninguna auditoría coincide con el filtro actual.</div>';
+    return;
+  }
+
+  const rows = filteredAudits
     .map((a) => {
       const isClosed = a.estado === 'CERRADA';
       return `

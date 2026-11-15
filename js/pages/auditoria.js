@@ -5,6 +5,7 @@
 import { api } from '../api.js';
 import { setActiveAuditId } from '../auth.js';
 import { OFFICIAL_REFERENTES } from '../config.js';
+import { setDirty } from '../dirty-guard.js';
 import { toInputDate } from '../format.js';
 import { icon } from '../icons.js';
 import { initLayout, populateAuditSelector, updateAuditStatusBadge } from '../layout.js';
@@ -45,10 +46,12 @@ export async function bootstrap() {
     onAuditChange: async (nextId) => {
       isNewMode = false;
       currentAuditId = nextId;
+      setDirty(false);
       await loadAuditoriaData(nextId);
     },
   });
   if (!ctx) return;
+  setDirty(false);
 
   attachLiveValidationClear(form);
   bindFormSubmit();
@@ -272,6 +275,8 @@ async function renderLifecyclePanel(audit) {
 
 function bindFormSubmit() {
   if (!form) return;
+  form.addEventListener('input', () => setDirty(true));
+  form.addEventListener('change', () => setDirty(true));
   form.addEventListener('submit', async (e) => {
   e.preventDefault();
   clearAllFieldErrors(form);
@@ -306,6 +311,7 @@ function bindFormSubmit() {
     if (isNewMode) {
       const res = await api.createAuditoria(payload);
       const created = res?.data;
+      setDirty(false);
       showToast(res?.message || 'Auditoría creada en estado BORRADOR.', 'success');
       if (created?.id_auditoria) {
         setActiveAuditId(created.id_auditoria);
@@ -317,6 +323,7 @@ function bindFormSubmit() {
       }
     } else {
       const res = await api.updateAuditoria(currentAuditId, payload);
+      setDirty(false);
       showToast(res?.message || 'Datos de auditoría actualizados.', 'success');
       const listRes = await api.getAuditorias();
       populateAuditSelector(listRes?.data || [], res?.data || currentAudit);
