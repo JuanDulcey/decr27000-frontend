@@ -39,37 +39,40 @@
   --touch-target-min: 44px;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    font-family: 'Ancizar Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+      Cantarell, sans-serif !important;
+    color: var(--color-text);
+    background-color: var(--color-bg);
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Ancizar Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+      Cantarell, sans-serif !important;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+  }
+
+  /* Accesibilidad: Foco visible de alto contraste */
+  :focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 2px;
+  }
 }
 
-html {
-  font-family: 'Ancizar Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif !important;
-  color: var(--color-text);
-  background-color: var(--color-bg);
-  scroll-behavior: smooth;
-  -webkit-text-size-adjust: 100%;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  font-family: 'Ancizar Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif !important;
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  line-height: 1.5;
-}
-
-/* Accesibilidad: Foco visible de alto contraste */
-:focus-visible {
-  outline: 3px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
+@layer components {
 /* ==========================================================================
    Botones y Controles Táctiles (Mínimo 44px de alto — RNF01 / CP-12)
    ========================================================================== */
@@ -695,6 +698,7 @@ body.login-leaving {
   body.login-leaving {
     transition: none;
   }
+}
 }
 
 /* ==========================================================================

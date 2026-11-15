@@ -438,7 +438,7 @@ function renderShell(user, activeStep) {
         </div>
       </header>
 
-      <div id="offline-banner" role="alert" class="hidden bg-amber-50 border-b border-amber-200 text-amber-900 px-4 sm:px-6 py-2 text-xs sm:text-sm font-medium flex items-center gap-2">
+      <div id="offline-banner" role="alert" class="hidden bg-amber-50 border-b border-amber-200 text-amber-900 px-4 sm:px-6 py-2 text-xs sm:text-sm font-medium">
         <span>Sin conexión a internet. Los cambios no podrán guardarse hasta restablecer la red.</span>
       </div>
 
@@ -498,6 +498,9 @@ function bindConnectivityBanner() {
     const banner = document.getElementById('offline-banner');
     if (!banner) return;
     banner.classList.toggle('hidden', navigator.onLine);
+    banner.classList.toggle('flex', !navigator.onLine);
+    banner.classList.toggle('items-center', !navigator.onLine);
+    banner.classList.toggle('gap-2', !navigator.onLine);
   };
   syncBanner();
   if (!window.__offlineBannerBound) {
