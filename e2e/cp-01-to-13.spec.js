@@ -75,6 +75,32 @@ test.describe('AuditSys SGSI — Pruebas Integrales E2E', () => {
     await expect(page.locator('#error-h-causa')).toBeVisible();
   });
 
+  test('Evidencias con archivos (fotos, documentos y videos): subir, visualizar y quitar archivo', async ({
+    page,
+  }) => {
+    await loginAs(page, 'ana.auditora@auditsys.edu.co');
+    await page.goto('/evaluacion.html');
+    await expect(page.locator('#evidencia-form')).toBeVisible();
+
+    await page.fill('#ev-descripcion', 'Video recorrido centro de datos');
+    await page.fill('#ev-fuente', 'Inspección física TI');
+    await page.setInputFiles('#ev-archivo', {
+      name: 'recorrido-datacenter.mp4',
+      mimeType: 'video/mp4',
+      buffer: Buffer.from('ftypmp42'),
+    });
+    await expect(page.locator('#ev-archivo-info')).toContainText('recorrido-datacenter.mp4');
+    await page.click('#btn-add-ev');
+
+    await expect(page.locator('#app-main')).toContainText('Video recorrido centro de datos');
+    await expect(page.locator('#app-main')).toContainText('recorrido-datacenter.mp4');
+    await expect(page.locator('[data-download-ev-file]').first()).toBeVisible();
+
+    await page.locator('[data-remove-ev-file]').first().click();
+    await page.locator('#modal-confirm-btn').click();
+    await expect(page.locator('#app-main')).not.toContainText('recorrido-datacenter.mp4');
+  });
+
   test('CP-09, CP-10 y CP-11: Dashboard e Informe Consolidado (33,3 % y 54,2 %)', async ({
     page,
   }) => {

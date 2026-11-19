@@ -482,9 +482,20 @@ function renderReportDocument(data) {
                     <td class="px-3 py-2 whitespace-nowrap">${escapeHtml(
                       formatDate(ev.fecha_evidencia)
                     )}</td>
-                    <td class="px-3 py-2 font-mono text-[11px]">${escapeHtml(
-                      ev.referencia_url || '—'
-                    )}</td>
+                    <td class="px-3 py-2 font-mono text-[11px]">
+                      <div>${escapeHtml(ev.referencia_url || (ev.tiene_archivo ? '' : '—'))}</div>
+                      ${
+                        ev.tiene_archivo
+                          ? `<div class="mt-1 flex flex-wrap items-center gap-1.5 font-sans">
+                              <span class="text-slate-700 font-semibold">${escapeHtml(ev.archivo_nombre || 'Archivo adjunto')}</span>
+                              <button type="button" data-report-download-ev="${escapeHtml(ev.id_evidencia)}"
+                                class="no-print text-[11px] font-bold text-[#007BFF] hover:underline cursor-pointer">
+                                Descargar
+                              </button>
+                            </div>`
+                          : ''
+                      }
+                    </td>
                     <td class="px-3 py-2 font-bold text-[#003366]">
                       ${
                         ev.es_simulada !== false
@@ -515,6 +526,25 @@ function renderReportDocument(data) {
       </p>
     </section>
   `;
+
+  container.querySelectorAll('[data-report-download-ev]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const idEv = Number(btn.getAttribute('data-report-download-ev'));
+      try {
+        btn.disabled = true;
+        const res = await api.getEvidenciaArchivoUrl(idEv);
+        if (res?.data?.url) {
+          window.open(res.data.url, '_blank', 'noopener');
+        } else {
+          showToast('No se obtuvo el enlace de descarga.', 'warning');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
 }
 
 if (!window.__AUDITSYS_SOFT_NAV__) {

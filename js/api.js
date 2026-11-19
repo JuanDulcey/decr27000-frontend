@@ -52,11 +52,13 @@ export async function request(method, path, body = null, options = {}) {
     }
   }, COLD_START_NOTICE_MS);
 
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
+
   const headers = {
     Accept: 'application/json',
   };
 
-  if (body !== null && body !== undefined) {
+  if (body !== null && body !== undefined && !isFormData) {
     headers['Content-Type'] = 'application/json';
   }
 
@@ -69,7 +71,7 @@ export async function request(method, path, body = null, options = {}) {
     const res = await fetch(fullUrl, {
       method,
       headers,
-      body: body !== null && body !== undefined ? JSON.stringify(body) : undefined,
+      body: body !== null && body !== undefined ? (isFormData ? body : JSON.stringify(body)) : undefined,
       signal: controller.signal,
     });
 
@@ -187,6 +189,18 @@ export const api = {
 
   createEvidencia: (idEval, payload) =>
     request('POST', `/evaluaciones/${encodeURIComponent(idEval)}/evidencias`, payload),
+
+  uploadEvidenciaArchivo: (idEvidencia, file) => {
+    const fd = new FormData();
+    fd.append('archivo', file);
+    return request('POST', `/evidencias/${encodeURIComponent(idEvidencia)}/archivo`, fd);
+  },
+
+  getEvidenciaArchivoUrl: (idEvidencia) =>
+    request('GET', `/evidencias/${encodeURIComponent(idEvidencia)}/archivo`),
+
+  deleteEvidenciaArchivo: (idEvidencia) =>
+    request('DELETE', `/evidencias/${encodeURIComponent(idEvidencia)}/archivo`),
 
   deleteEvidencia: (idEvidencia) =>
     request('DELETE', `/evidencias/${encodeURIComponent(idEvidencia)}`),

@@ -34,6 +34,18 @@ let selectedStateDraft = null;
 let hasUnsavedChanges = false;
 
 let keyboardBound = false;
+let pendingUploadEvId = null;
+
+const EVIDENCIA_ACCEPT_ATTR =
+  'image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.ods,.txt,.log,.conf,.csv,.json,.zip,.heic,.heif,.mp4,.webm,.mov,.m4v,.avi,.mkv';
+
+function formatFileSize(bytes) {
+  const n = Number(bytes);
+  if (!Number.isFinite(n) || n <= 0) return '';
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+}
 
 export async function bootstrap() {
   evaluaciones = [];
@@ -254,10 +266,49 @@ function renderDetailPanel() {
     evs.length === 0
       ? `<p class="text-xs text-slate-500 italic py-2">No hay evidencias registradas para este control.</p>`
       : evs
-          .map(
-            (item) => `
-          <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div class="space-y-1">
+          .map((item) => {
+            const fileBadgeHtml = item.tiene_archivo
+              ? `<div class="mt-2 flex flex-wrap items-center gap-2">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-800">
+                    ${icon('fileText', 'w-3.5 h-3.5 text-[#003366]')}
+                    <span class="truncate max-w-[220px]">${escapeHtml(item.archivo_nombre || 'Archivo adjunto')}</span>
+                    ${
+                      item.archivo_tamano
+                        ? `<span class="text-[11px] font-normal text-slate-500">(${escapeHtml(
+                            formatFileSize(item.archivo_tamano)
+                          )})</span>`
+                        : ''
+                    }
+                  </span>
+                  <button type="button" data-download-ev-file="${escapeHtml(
+                    item.id_evidencia
+                  )}" class="btn btn-outline text-xs px-2.5">
+                    ${icon('download', 'w-3.5 h-3.5')} Descargar
+                  </button>
+                  ${
+                    isClosedAudit
+                      ? ''
+                      : `<button type="button" data-upload-ev-file="${escapeHtml(
+                          item.id_evidencia
+                        )}" class="btn btn-outline text-xs px-2.5">Reemplazar</button>
+                        <button type="button" data-remove-ev-file="${escapeHtml(
+                          item.id_evidencia
+                        )}" class="btn btn-ghost text-xs text-[#D64545] hover:bg-red-50 px-2.5">Quitar archivo</button>`
+                  }
+                </div>`
+              : isClosedAudit
+                ? ''
+                : `<div class="mt-2">
+                    <button type="button" data-upload-ev-file="${escapeHtml(
+                      item.id_evidencia
+                    )}" class="btn btn-outline text-xs px-2.5">
+                      ${icon('upload', 'w-3.5 h-3.5')} Adjuntar archivo (foto, video o documento)
+                    </button>
+                  </div>`;
+
+            return `
+          <div class="p-3 rounded-lg bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+            <div class="space-y-1 min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2">
                 <span class="px-2 py-0.5 rounded bg-[#003366] text-white font-mono text-xs font-bold">
                   ${escapeHtml(item.codigo_evidencia)}
@@ -280,6 +331,7 @@ function renderDetailPanel() {
                 : ''
             }
               </div>
+              ${fileBadgeHtml}
             </div>
             ${
               isClosedAudit
@@ -289,8 +341,8 @@ function renderDetailPanel() {
                   )}" class="btn btn-ghost text-xs text-[#D64545] hover:bg-red-50 px-2.5 shrink-0">Eliminar</button>`
             }
           </div>
-        `
-          )
+        `;
+          })
           .join('');
 
   const hallsHtml =
@@ -411,6 +463,7 @@ function renderDetailPanel() {
       }
 
       <div class="space-y-2">${evListHtml}</div>
+      <input type="file" id="ev-row-file-input" class="hidden" accept="${EVIDENCIA_ACCEPT_ATTR}" />
 
       <!-- Formulario Inline para Agregar Evidencia -->
       ${
@@ -448,6 +501,16 @@ function renderDetailPanel() {
                     <span>Evidencia referencial</span>
                   </label>
                 </div>
+              </div>
+              <div>
+                <label for="ev-archivo" class="block text-xs font-bold text-slate-700 mb-1">
+                  Adjuntar archivo (foto, imagen, video o documento — opcional)
+                </label>
+                <input id="ev-archivo" type="file" accept="${EVIDENCIA_ACCEPT_ATTR}"
+                  class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border file:border-slate-300 file:text-xs file:font-semibold file:bg-white file:text-slate-700 hover:file:bg-slate-100 cursor-pointer" />
+                <p id="ev-archivo-info" class="text-[11px] text-slate-500 mt-1">
+                  Formatos admitidos: fotos/imágenes (PNG, JPG, WEBP, GIF, HEIC), videos (MP4, WEBM, MOV, AVI, MKV) y documentos (PDF, Office, TXT, CSV, JSON, ZIP).
+                </p>
               </div>
               <div class="flex justify-end">
                 <button type="submit" id="btn-add-ev" class="btn btn-outline text-xs">+ Registrar Evidencia</button>
@@ -563,6 +626,19 @@ function bindDetailPanelEvents(ev) {
   const evForm = document.getElementById('evidencia-form');
   if (evForm) {
     attachLiveValidationClear(evForm);
+    const fileInput = document.getElementById('ev-archivo');
+    const fileInfo = document.getElementById('ev-archivo-info');
+    fileInput?.addEventListener('change', () => {
+      const f = fileInput.files?.[0];
+      if (!fileInfo) return;
+      if (f) {
+        fileInfo.textContent = `Seleccionado: ${f.name} (${formatFileSize(f.size)})`;
+      } else {
+        fileInfo.textContent =
+          'Formatos admitidos: fotos/imágenes (PNG, JPG, WEBP, GIF, HEIC), videos (MP4, WEBM, MOV, AVI, MKV) y documentos (PDF, Office, TXT, CSV, JSON, ZIP).';
+      }
+    });
+
     evForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAllFieldErrors(evForm);
@@ -576,11 +652,30 @@ function bindDetailPanelEvents(ev) {
       const { valid } = validateEvidenciaForm(payload);
       if (!valid) return;
 
+      const selectedFile = fileInput?.files?.[0] || null;
       try {
         const btn = document.getElementById('btn-add-ev');
         btn.disabled = true;
         const res = await api.createEvidencia(ev.id_evaluacion, payload);
-        showToast(res?.message || 'Evidencia registrada.', 'success');
+        const createdEv = res?.data;
+
+        if (selectedFile && createdEv?.id_evidencia) {
+          try {
+            await api.uploadEvidenciaArchivo(createdEv.id_evidencia, selectedFile);
+            showToast(
+              `Evidencia ${createdEv.codigo_evidencia} registrada y archivo "${selectedFile.name}" adjuntado.`,
+              'success'
+            );
+          } catch (uploadErr) {
+            showToast(
+              `Evidencia ${createdEv.codigo_evidencia} registrada, pero no se pudo subir el archivo: ${uploadErr.message}`,
+              'warning',
+              8000
+            );
+          }
+        } else {
+          showToast(res?.message || 'Evidencia registrada.', 'success');
+        }
         await loadEvaluaciones();
       } catch (err) {
         if (err.field) setFieldError(err.field, err.message);
@@ -589,6 +684,71 @@ function bindDetailPanelEvents(ev) {
       }
     });
   }
+
+  const rowFileInput = document.getElementById('ev-row-file-input');
+  rowFileInput?.addEventListener('change', async () => {
+    const file = rowFileInput.files?.[0];
+    const targetId = pendingUploadEvId;
+    pendingUploadEvId = null;
+    rowFileInput.value = '';
+    if (!file || !targetId) return;
+
+    try {
+      showToast(`Subiendo "${file.name}"…`, 'info', 4000);
+      const res = await api.uploadEvidenciaArchivo(targetId, file);
+      showToast(res?.message || `Archivo "${file.name}" adjuntado.`, 'success');
+      await loadEvaluaciones();
+    } catch (err) {
+      showToast(err.message, 'error', 7000);
+    }
+  });
+
+  document.querySelectorAll('[data-upload-ev-file]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      pendingUploadEvId = Number(btn.getAttribute('data-upload-ev-file'));
+      rowFileInput?.click();
+    });
+  });
+
+  document.querySelectorAll('[data-download-ev-file]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const idEv = Number(btn.getAttribute('data-download-ev-file'));
+      try {
+        btn.disabled = true;
+        const res = await api.getEvidenciaArchivoUrl(idEv);
+        const url = res?.data?.url;
+        if (url) {
+          window.open(url, '_blank', 'noopener');
+        } else {
+          showToast('No se obtuvo el enlace de descarga.', 'warning');
+        }
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll('[data-remove-ev-file]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const idEv = Number(btn.getAttribute('data-remove-ev-file'));
+      const ok = await confirmModal({
+        title: 'Quitar archivo adjunto',
+        message: 'Se eliminará el archivo del almacenamiento, pero se conservará el registro de la evidencia.',
+        confirmText: 'Quitar archivo',
+        danger: true,
+      });
+      if (!ok) return;
+      try {
+        const res = await api.deleteEvidenciaArchivo(idEv);
+        showToast(res?.message || 'Archivo quitado de la evidencia.', 'info');
+        await loadEvaluaciones();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  });
 
   document.querySelectorAll('[data-del-ev]').forEach((btn) => {
     btn.addEventListener('click', async () => {

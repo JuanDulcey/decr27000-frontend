@@ -383,6 +383,108 @@ export async function installApiMock(page) {
       return json(200, { ok: true, data: evaluaciones });
     }
 
+    if (method === 'POST' && /^\/evaluaciones\/\d+\/evidencias$/.test(path)) {
+      const idEval = Number(path.split('/')[2]);
+      const targetEval = evaluaciones.find((e) => e.id_evaluacion === idEval) || evaluaciones[0];
+      const nextId =
+        evaluaciones.reduce((max, ev) => Math.max(max, ...ev.evidencias.map((x) => x.id_evidencia || 0)), 0) + 1;
+      const created = {
+        id_evidencia: nextId,
+        id_evaluacion: targetEval.id_evaluacion,
+        codigo_evidencia: `EV-${String(nextId).padStart(2, '0')}`,
+        descripcion: body?.descripcion || 'Evidencia',
+        fuente: body?.fuente || 'Fuente',
+        fecha_evidencia: body?.fecha_evidencia || '2026-11-19',
+        referencia_url: body?.referencia_url || null,
+        es_simulada: body?.es_simulada ?? true,
+        tiene_archivo: false,
+        archivo_nombre: null,
+        archivo_tipo: null,
+        archivo_tamano: null,
+      };
+      targetEval.evidencias.push(created);
+      return json(201, { ok: true, data: created, message: `Evidencia ${created.codigo_evidencia} registrada.` });
+    }
+
+    if (method === 'POST' && /^\/evidencias\/\d+\/archivo$/.test(path)) {
+      const idEv = Number(path.split('/')[2]);
+      const rawBuf = req.postDataBuffer();
+      const rawText = rawBuf ? rawBuf.toString('utf8') : '';
+      const nameMatch = /filename="([^"]+)"/.exec(rawText);
+      const filename = nameMatch ? nameMatch[1] : 'evidencia.mp4';
+      const isVideo = /\.(mp4|webm|mov|m4v|avi|mkv)$/i.test(filename);
+      const tipo = isVideo ? 'video/mp4' : 'image/png';
+      let updated = null;
+      for (const ev of evaluaciones) {
+        const found = ev.evidencias.find((x) => x.id_evidencia === idEv);
+        if (found) {
+          found.tiene_archivo = true;
+          found.archivo_nombre = filename;
+          found.archivo_tipo = tipo;
+          found.archivo_tamano = rawBuf ? rawBuf.length : 1024;
+          updated = found;
+          break;
+        }
+      }
+      if (!updated) return json(404, { ok: false, error: 'Evidencia no encontrada.' });
+      return json(201, {
+        ok: true,
+        data: updated,
+        message: `Archivo "${updated.archivo_nombre}" adjuntado a la evidencia ${updated.codigo_evidencia}.`,
+      });
+    }
+
+    if (method === 'GET' && /^\/evidencias\/\d+\/archivo$/.test(path)) {
+      const idEv = Number(path.split('/')[2]);
+      for (const ev of evaluaciones) {
+        const found = ev.evidencias.find((x) => x.id_evidencia === idEv);
+        if (found && found.tiene_archivo) {
+          return json(200, {
+            ok: true,
+            data: {
+              url: `https://bucket.example.com/${encodeURIComponent(found.archivo_nombre)}`,
+              expira_en_segundos: 300,
+              archivo_nombre: found.archivo_nombre,
+              archivo_tipo: found.archivo_tipo,
+              archivo_tamano: found.archivo_tamano,
+            },
+          });
+        }
+      }
+      return json(404, { ok: false, error: 'La evidencia no tiene un archivo adjunto.' });
+    }
+
+    if (method === 'DELETE' && /^\/evidencias\/\d+\/archivo$/.test(path)) {
+      const idEv = Number(path.split('/')[2]);
+      for (const ev of evaluaciones) {
+        const found = ev.evidencias.find((x) => x.id_evidencia === idEv);
+        if (found && found.tiene_archivo) {
+          found.tiene_archivo = false;
+          found.archivo_nombre = null;
+          found.archivo_tipo = null;
+          found.archivo_tamano = null;
+          return json(200, {
+            ok: true,
+            data: found,
+            message: `Archivo quitado de la evidencia ${found.codigo_evidencia}.`,
+          });
+        }
+      }
+      return json(404, { ok: false, error: 'La evidencia no tiene un archivo adjunto.' });
+    }
+
+    if (method === 'DELETE' && /^\/evidencias\/\d+$/.test(path)) {
+      const idEv = Number(path.split('/')[2]);
+      for (const ev of evaluaciones) {
+        const idx = ev.evidencias.findIndex((x) => x.id_evidencia === idEv);
+        if (idx !== -1) {
+          const [removed] = ev.evidencias.splice(idx, 1);
+          return json(200, { ok: true, data: removed, message: 'Evidencia eliminada.' });
+        }
+      }
+      return json(404, { ok: false, error: 'Evidencia no encontrada.' });
+    }
+
     if (method === 'PUT' && /^\/auditorias\/\d+\/seleccion-controles$/.test(path)) {
       return json(200, { ok: true, message: 'Selección guardada.' });
     }
