@@ -145,6 +145,7 @@ test.describe('AuditSys SGSI — Pruebas Integrales E2E', () => {
     await loginAs(page, 'admin@auditsys.edu.co');
     await expect(page.locator('#admin-quick-banner')).toBeVisible();
     await page.goto('/admin.html');
+    await expect(page.locator('#admin-users-container table')).toBeVisible();
 
     await page.click('#btn-new-user');
     await page.fill('#u-nombre', 'Laura Gómez');
