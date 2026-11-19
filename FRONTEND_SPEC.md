@@ -354,3 +354,36 @@ Usar coma decimal (`33,3 %`) en el informe y en el dashboard (`Intl.NumberFormat
 
 ### 7.4. Nombres de controles mostrados
 La UI muestra el `nombre` que devuelve `GET /api/controles`, sin textos fijos en el código. En la semilla se corrigieron errores de traducción del Excel docente para alinearlos con ISO/IEC 27002:2022 (por ejemplo: 5.31 *Requisitos legales, estatutarios, reglamentarios y contractuales*, 7.7 *Escritorio limpio y pantalla limpia*, 8.15 *Registro de eventos*). El frontend debe tomar el nombre siempre de la API.
+
+---
+
+## 8. Archivos de evidencias (bucket S3 de Railway) — contrato para la interfaz
+
+El backend permite adjuntar un archivo real a cada evidencia (detalle en `BACKEND_SPEC.md` §6.10). Es **opcional**: si el bucket no está configurado, los endpoints responden `503` y el resto funciona igual.
+
+| Acción en la UI | Llamada | Notas |
+| :--- | :--- | :--- |
+| Adjuntar / reemplazar | `POST /api/evidencias/{id}/archivo` con `FormData` (campo `archivo`) | **No** fijar `Content-Type` a mano (el navegador agrega el `boundary`); solo `Authorization: Bearer`. Máx. 5 MB por defecto. Tipos: PDF, imágenes, Office/ODF, CSV, TXT, LOG, CONF, JSON, ZIP. |
+| Descargar | `GET /api/evidencias/{id}/archivo` → `data.url` | Enlace prefirmado de 5 min: abrirlo con `window.open(data.url)` o `location.href` (navegación, no `fetch`, así no hace falta tocar la CSP). Pedirlo justo antes de descargar. |
+| Quitar | `DELETE /api/evidencias/{id}/archivo` | Conserva la evidencia. |
+
+- Cada evidencia trae `tiene_archivo`, `archivo_nombre`, `archivo_tipo` y `archivo_tamano` en `GET /api/auditorias/{id}/evaluaciones`, en el anexo del informe y en la trazabilidad: mostrar un ícono de clip y el nombre cuando `tiene_archivo` es `true`.
+- Con la auditoría `CERRADA`, adjuntar y quitar responden `403`; descargar sigue permitido.
+- `GET /api/health?db=1` informa `storage: "UP" | "DOWN" | "DISABLED"`; con `DISABLED` conviene ocultar el botón de adjuntar.
+- Ejemplo para `js/api.js` (el `request()` actual envía JSON, así que la subida usa `fetch` directo):
+  ```javascript
+  uploadArchivoEvidencia: async (idEvidencia, file) => {
+    const form = new FormData();
+    form.append('archivo', file);
+    const res = await fetch(`${getApiBaseUrl()}/evidencias/${encodeURIComponent(idEvidencia)}/archivo`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${localStorage.getItem('auditsys_token')}` },
+      body: form,
+    });
+    const json = await res.json();
+    if (!res.ok || json.ok === false) throw new ApiError(json.error, res.status, json.field, json);
+    return json;
+  },
+  getArchivoEvidencia: (idEvidencia) => request('GET', `/evidencias/${encodeURIComponent(idEvidencia)}/archivo`),
+  deleteArchivoEvidencia: (idEvidencia) => request('DELETE', `/evidencias/${encodeURIComponent(idEvidencia)}/archivo`),
+  ```
