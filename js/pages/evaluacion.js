@@ -871,6 +871,9 @@ async function openEvidencePreviewModal(evItem) {
           ${evItem.referencia_url ? `Ref: <code class="bg-white px-1.5 py-0.5 rounded border border-slate-200">${escapeHtml(evItem.referencia_url)}</code>` : ''}
         </div>
         <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="ev-preview-open-tab" class="hidden btn btn-outline text-xs">
+            Abrir en pestaña nueva
+          </button>
           <button type="button" id="ev-preview-download" class="btn btn-outline text-xs">
             ${icon('download', 'w-3.5 h-3.5')} Descargar
           </button>
@@ -882,8 +885,15 @@ async function openEvidencePreviewModal(evItem) {
 
   document.body.appendChild(backdrop);
 
+  let activeBlobUrl = null;
+  let previewUrlForTab = null;
+
   const closePreview = () => {
     document.removeEventListener('keydown', onKeyDown);
+    if (activeBlobUrl) {
+      URL.revokeObjectURL(activeBlobUrl);
+      activeBlobUrl = null;
+    }
     backdrop.remove();
   };
   const onKeyDown = (e) => {
@@ -899,6 +909,10 @@ async function openEvidencePreviewModal(evItem) {
     if (e.target === backdrop) closePreview();
   });
 
+  backdrop.querySelector('#ev-preview-open-tab')?.addEventListener('click', () => {
+    if (previewUrlForTab) window.open(previewUrlForTab, '_blank', 'noopener');
+  });
+
   backdrop.querySelector('#ev-preview-download')?.addEventListener('click', async () => {
     try {
       const res = await api.getEvidenciaArchivoUrl(evItem.id_evidencia);
@@ -909,22 +923,38 @@ async function openEvidencePreviewModal(evItem) {
   });
 
   const bodyEl = backdrop.querySelector('#ev-preview-body');
-  try {
-    const res = await api.getEvidenciaArchivoUrl(evItem.id_evidencia, { inline: true });
-    const url = res?.data?.url;
-    const mime = String(res?.data?.archivo_tipo || evItem.archivo_tipo || '').toLowerCase();
-    if (!url || !bodyEl) return;
+  const openTabBtn = backdrop.querySelector('#ev-preview-open-tab');
+  const mime = String(evItem.archivo_tipo || '').toLowerCase();
 
-    if (mime.startsWith('image/')) {
-      bodyEl.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(
-        evItem.archivo_nombre || 'Imagen de evidencia'
-      )}" class="max-h-[60vh] w-auto mx-auto rounded-lg object-contain shadow-sm" />`;
-    } else if (mime.startsWith('video/')) {
-      bodyEl.innerHTML = `<video src="${escapeHtml(url)}" controls preload="metadata" class="w-full max-h-[60vh] rounded-lg bg-black"></video>`;
-    } else if (mime === 'application/pdf' || mime.startsWith('text/') || mime === 'application/json') {
-      bodyEl.innerHTML = `<iframe src="${escapeHtml(
-        url
-      )}" class="w-full h-[60vh] rounded-lg border border-slate-200 bg-white" title="Vista previa del documento"></iframe>`;
+  try {
+    if (!bodyEl) return;
+
+    if (mime.startsWith('image/') || mime.startsWith('video/')) {
+      const res = await api.getEvidenciaArchivoUrl(evItem.id_evidencia, { inline: true });
+      const url = res?.data?.url;
+      if (!url) return;
+      previewUrlForTab = url;
+      openTabBtn?.classList.remove('hidden');
+
+      if (mime.startsWith('image/')) {
+        bodyEl.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(
+          evItem.archivo_nombre || 'Imagen de evidencia'
+        )}" class="max-h-[60vh] w-auto mx-auto rounded-lg object-contain shadow-sm" />`;
+      } else {
+        bodyEl.innerHTML = `<video src="${escapeHtml(url)}" controls preload="metadata" class="w-full max-h-[60vh] rounded-lg bg-black"></video>`;
+      }
+    } else if (mime === 'application/pdf') {
+      const blob = await api.getEvidenciaArchivoBlob(evItem.id_evidencia);
+      activeBlobUrl = URL.createObjectURL(blob);
+      previewUrlForTab = activeBlobUrl;
+      openTabBtn?.classList.remove('hidden');
+      bodyEl.innerHTML = `<iframe src="${activeBlobUrl}" class="w-full h-[60vh] rounded-lg border border-slate-200 bg-white" title="Vista previa del PDF"></iframe>`;
+    } else if (mime.startsWith('text/') || mime === 'application/json') {
+      const blob = await api.getEvidenciaArchivoBlob(evItem.id_evidencia);
+      const text = await blob.text();
+      bodyEl.innerHTML = `<pre class="w-full max-h-[60vh] overflow-auto p-4 rounded-lg bg-slate-900 text-slate-100 text-xs font-mono whitespace-pre-wrap break-words">${escapeHtml(
+        text.slice(0, 200000)
+      )}</pre>`;
     } else {
       bodyEl.innerHTML = `
         <div class="text-center space-y-2 py-6 max-w-md">

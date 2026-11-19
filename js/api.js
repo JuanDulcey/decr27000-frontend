@@ -202,6 +202,20 @@ export const api = {
       `/evidencias/${encodeURIComponent(idEvidencia)}/archivo${inline ? '?inline=1' : ''}`
     ),
 
+  getEvidenciaArchivoBlob: async (idEvidencia) => {
+    const baseUrl = getApiBaseUrl();
+    const token = getToken();
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await fetch(`${baseUrl}/evidencias/${encodeURIComponent(idEvidencia)}/contenido`, {
+      method: 'GET',
+      headers,
+    });
+    if (!res.ok) {
+      throw new ApiError(`No se pudo cargar la vista previa (HTTP ${res.status}).`, res.status);
+    }
+    return res.blob();
+  },
+
   deleteEvidenciaArchivo: (idEvidencia) =>
     request('DELETE', `/evidencias/${encodeURIComponent(idEvidencia)}/archivo`),
 
