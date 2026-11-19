@@ -47,6 +47,20 @@ function formatFileSize(bytes) {
   return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+function getFileCategoryLabel(mimeType, filename = '') {
+  const mime = String(mimeType || '').toLowerCase();
+  const ext = String(filename || '').toLowerCase();
+  if (mime.startsWith('image/') || /\.(png|jpe?g|webp|gif|heic|heif)$/.test(ext)) return 'Imagen';
+  if (mime.startsWith('video/') || /\.(mp4|webm|mov|m4v|avi|mkv)$/.test(ext)) return 'Video';
+  if (mime === 'application/pdf' || ext.endsWith('.pdf')) return 'PDF';
+  if (mime.startsWith('text/') || mime === 'application/json' || /\.(txt|log|conf|csv|json)$/.test(ext)) {
+    return 'Texto';
+  }
+  if (/\.(docx?|xlsx?|pptx?|odt|ods)$/.test(ext)) return 'Documento';
+  if (ext.endsWith('.zip')) return 'ZIP';
+  return 'Archivo';
+}
+
 export async function bootstrap() {
   evaluaciones = [];
   activeEvalId = null;
@@ -267,10 +281,14 @@ function renderDetailPanel() {
       ? `<p class="text-xs text-slate-500 italic py-2">No hay evidencias registradas para este control.</p>`
       : evs
           .map((item) => {
+            const fileCategory = getFileCategoryLabel(item.archivo_tipo, item.archivo_nombre);
             const fileBadgeHtml = item.tiene_archivo
               ? `<div class="mt-2 flex flex-wrap items-center gap-2">
                   <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-800">
                     ${icon('fileText', 'w-3.5 h-3.5 text-[#003366]')}
+                    <span class="px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-bold uppercase text-[#003366]">${escapeHtml(
+                      fileCategory
+                    )}</span>
                     <span class="truncate max-w-[220px]">${escapeHtml(item.archivo_nombre || 'Archivo adjunto')}</span>
                     ${
                       item.archivo_tamano
@@ -280,6 +298,11 @@ function renderDetailPanel() {
                         : ''
                     }
                   </span>
+                  <button type="button" data-preview-ev-file="${escapeHtml(
+                    item.id_evidencia
+                  )}" class="btn btn-primary text-xs px-2.5">
+                    ${icon('eye', 'w-3.5 h-3.5')} Previsualizar
+                  </button>
                   <button type="button" data-download-ev-file="${escapeHtml(
                     item.id_evidencia
                   )}" class="btn btn-outline text-xs px-2.5">
@@ -710,6 +733,14 @@ function bindDetailPanelEvents(ev) {
     });
   });
 
+  document.querySelectorAll('[data-preview-ev-file]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const idEv = Number(btn.getAttribute('data-preview-ev-file'));
+      const item = (ev.evidencias || []).find((x) => x.id_evidencia === idEv);
+      if (item) openEvidencePreviewModal(item);
+    });
+  });
+
   document.querySelectorAll('[data-download-ev-file]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const idEv = Number(btn.getAttribute('data-download-ev-file'));
@@ -773,6 +804,147 @@ function bindDetailPanelEvents(ev) {
   document.getElementById('btn-open-quick-hallazgo')?.addEventListener('click', () => {
     openQuickHallazgoModal(ev);
   });
+}
+
+async function openEvidencePreviewModal(evItem) {
+  const existing = document.getElementById('ev-preview-modal-backdrop');
+  if (existing) existing.remove();
+
+  const category = getFileCategoryLabel(evItem.archivo_tipo, evItem.archivo_nombre);
+  const backdrop = document.createElement('div');
+  backdrop.id = 'ev-preview-modal-backdrop';
+  backdrop.className =
+    'fixed inset-0 z-50 bg-slate-950/65 backdrop-blur-sm flex items-center justify-center p-4 no-print';
+  backdrop.setAttribute('role', 'dialog');
+  backdrop.setAttribute('aria-modal', 'true');
+
+  backdrop.innerHTML = `
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      <div class="bg-[#0F172A] text-white px-5 py-4 flex items-center justify-between gap-3 shrink-0">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded bg-[#007BFF] text-white font-mono text-xs font-bold">${escapeHtml(
+              evItem.codigo_evidencia
+            )}</span>
+            <span class="px-2 py-0.5 rounded bg-white/15 text-[11px] font-bold uppercase">${escapeHtml(category)}</span>
+          </div>
+          <h3 class="font-bold text-sm sm:text-base truncate mt-1">${escapeHtml(
+            evItem.archivo_nombre || evItem.descripcion
+          )}</h3>
+        </div>
+        <button type="button" id="ev-preview-close" class="text-white/80 hover:text-white p-2 min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Cerrar vista previa">
+          ${icon('x', 'w-5 h-5')}
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+          <div>
+            <span class="block text-slate-500 font-semibold">Descripción</span>
+            <span class="font-bold text-slate-900">${escapeHtml(evItem.descripcion)}</span>
+          </div>
+          <div>
+            <span class="block text-slate-500 font-semibold">Fuente</span>
+            <span class="font-bold text-slate-900">${escapeHtml(evItem.fuente)}</span>
+          </div>
+          <div>
+            <span class="block text-slate-500 font-semibold">Fecha y Tipo</span>
+            <span class="font-bold text-slate-900">${escapeHtml(formatDate(evItem.fecha_evidencia))} · ${
+              evItem.es_simulada !== false ? 'Referencial' : 'Documental'
+            }</span>
+          </div>
+          <div>
+            <span class="block text-slate-500 font-semibold">Archivo</span>
+            <span class="font-bold text-slate-900">${escapeHtml(evItem.archivo_tipo || '—')} ${
+              evItem.archivo_tamano ? `(${escapeHtml(formatFileSize(evItem.archivo_tamano))})` : ''
+            }</span>
+          </div>
+        </div>
+
+        <div id="ev-preview-body" class="min-h-[220px] flex items-center justify-center rounded-xl bg-slate-100/70 border border-slate-200 p-4">
+          <p class="text-sm text-slate-500 font-medium">Cargando vista previa segura…</p>
+        </div>
+      </div>
+
+      <div class="px-5 py-3 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div class="text-xs text-slate-500">
+          ${evItem.referencia_url ? `Ref: <code class="bg-white px-1.5 py-0.5 rounded border border-slate-200">${escapeHtml(evItem.referencia_url)}</code>` : ''}
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" id="ev-preview-download" class="btn btn-outline text-xs">
+            ${icon('download', 'w-3.5 h-3.5')} Descargar
+          </button>
+          <button type="button" id="ev-preview-close-btn" class="btn btn-primary text-xs">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(backdrop);
+
+  const closePreview = () => {
+    document.removeEventListener('keydown', onKeyDown);
+    backdrop.remove();
+  };
+  const onKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closePreview();
+    }
+  };
+  document.addEventListener('keydown', onKeyDown);
+  backdrop.querySelector('#ev-preview-close')?.addEventListener('click', closePreview);
+  backdrop.querySelector('#ev-preview-close-btn')?.addEventListener('click', closePreview);
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) closePreview();
+  });
+
+  backdrop.querySelector('#ev-preview-download')?.addEventListener('click', async () => {
+    try {
+      const res = await api.getEvidenciaArchivoUrl(evItem.id_evidencia);
+      if (res?.data?.url) window.open(res.data.url, '_blank', 'noopener');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  });
+
+  const bodyEl = backdrop.querySelector('#ev-preview-body');
+  try {
+    const res = await api.getEvidenciaArchivoUrl(evItem.id_evidencia, { inline: true });
+    const url = res?.data?.url;
+    const mime = String(res?.data?.archivo_tipo || evItem.archivo_tipo || '').toLowerCase();
+    if (!url || !bodyEl) return;
+
+    if (mime.startsWith('image/')) {
+      bodyEl.innerHTML = `<img src="${escapeHtml(url)}" alt="${escapeHtml(
+        evItem.archivo_nombre || 'Imagen de evidencia'
+      )}" class="max-h-[60vh] w-auto mx-auto rounded-lg object-contain shadow-sm" />`;
+    } else if (mime.startsWith('video/')) {
+      bodyEl.innerHTML = `<video src="${escapeHtml(url)}" controls preload="metadata" class="w-full max-h-[60vh] rounded-lg bg-black"></video>`;
+    } else if (mime === 'application/pdf' || mime.startsWith('text/') || mime === 'application/json') {
+      bodyEl.innerHTML = `<iframe src="${escapeHtml(
+        url
+      )}" class="w-full h-[60vh] rounded-lg border border-slate-200 bg-white" title="Vista previa del documento"></iframe>`;
+    } else {
+      bodyEl.innerHTML = `
+        <div class="text-center space-y-2 py-6 max-w-md">
+          <div class="inline-flex p-3 rounded-full bg-white border border-slate-200 text-[#003366]">
+            ${icon('fileText', 'w-7 h-7')}
+          </div>
+          <p class="text-sm font-bold text-slate-900">${escapeHtml(evItem.archivo_nombre || 'Archivo adjunto')}</p>
+          <p class="text-xs text-slate-600">
+            Este formato (${escapeHtml(mime || category)}) no se renderiza directamente en el navegador. Usa el botón <strong>Descargar</strong> para abrirlo en tu equipo.
+          </p>
+        </div>
+      `;
+    }
+  } catch (err) {
+    if (bodyEl) {
+      bodyEl.innerHTML = `<p class="text-sm text-[#D64545] font-semibold">No se pudo cargar la vista previa: ${escapeHtml(
+        err.message
+      )}</p>`;
+    }
+  }
 }
 
 function bindQuickHallazgoModal() {

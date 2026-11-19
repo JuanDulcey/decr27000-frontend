@@ -94,7 +94,14 @@ test.describe('AuditSys SGSI — Pruebas Integrales E2E', () => {
 
     await expect(page.locator('#app-main')).toContainText('Video recorrido centro de datos');
     await expect(page.locator('#app-main')).toContainText('recorrido-datacenter.mp4');
+    await expect(page.locator('[data-preview-ev-file]').first()).toBeVisible();
     await expect(page.locator('[data-download-ev-file]').first()).toBeVisible();
+
+    await page.locator('[data-preview-ev-file]').first().click();
+    await expect(page.locator('#ev-preview-modal-backdrop')).toContainText('Inspección física TI');
+    await expect(page.locator('#ev-preview-body video')).toBeVisible();
+    await page.locator('#ev-preview-close-btn').click();
+    await expect(page.locator('#ev-preview-modal-backdrop')).toHaveCount(0);
 
     await page.locator('[data-remove-ev-file]').first().click();
     await page.locator('#modal-confirm-btn').click();

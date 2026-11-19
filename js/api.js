@@ -196,8 +196,11 @@ export const api = {
     return request('POST', `/evidencias/${encodeURIComponent(idEvidencia)}/archivo`, fd);
   },
 
-  getEvidenciaArchivoUrl: (idEvidencia) =>
-    request('GET', `/evidencias/${encodeURIComponent(idEvidencia)}/archivo`),
+  getEvidenciaArchivoUrl: (idEvidencia, { inline = false } = {}) =>
+    request(
+      'GET',
+      `/evidencias/${encodeURIComponent(idEvidencia)}/archivo${inline ? '?inline=1' : ''}`
+    ),
 
   deleteEvidenciaArchivo: (idEvidencia) =>
     request('DELETE', `/evidencias/${encodeURIComponent(idEvidencia)}/archivo`),
